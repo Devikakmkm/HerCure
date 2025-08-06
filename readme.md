@@ -1,46 +1,175 @@
-# HerCure – An AI-Powered Women’s Health & Wellness Platform
+# Hercure – Women's Health & Wellness Platform
 
-**HerCure** is a smart full-stack AI-powered platform that analyzes clinical data and symptoms, predicts health risks using machine learning, recommends personalized wellness plans, offers a built-in shopping store for health essentials, and enables appointment booking and wearable device sync.
+## 🚀 Features
 
-## Project Objective
+### Health Tracking
+- **Menstrual Cycle Tracking**: Log and predict menstrual cycles with precision
+- **Symptom Journal**: Record and analyze symptoms, moods, and patterns
+- **Health Analytics**: Visualize your health data with interactive charts
 
-To develop a smart full-stack AI-powered platform that:
+### E-Commerce
+- **Product Catalog**: Browse health and wellness products
+- **Shopping Cart**: Add, update, and remove items
+- **Secure Checkout**: Process payments using Stripe
 
-* Analyzes clinical data and symptoms.
-* Predicts health risks using machine learning.
-* Recommends personalized wellness plans.
-* Offers a built-in shopping store for health essentials.
-* Enables appointment booking and wearable device sync.
+## 🛠️ Tech Stack
 
-## Tech Stack
+### Frontend
+- **HTML5** - Structure and semantics
+- **CSS3/Tailwind CSS** - Styling and responsive design
+- **JavaScript** - Client-side interactivity
+- **jQuery** - DOM manipulation and event handling
+- **Chart.js** - Data visualization
+- **Alpine.js** - Minimal framework for JavaScript behavior
 
-| Layer             | Technologies Used                                                                                                                                |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Frontend**      | HTML, CSS, JavaScript, Bootstrap                                                                                                                 |
-| **Backend**       | Python (Flask)                                                                                                                                   |
-| **Database**      | MongoDB                                                                                                                                          |
-| **APIs & Tools**  | Google Maps (doctor locator), Google Fit (wearables), OpenAI API (chatbot), Razorpay/Stripe (payments)                                          |
+### Backend
+- **Python 3.9+** - Core programming language
+- **Flask 2.3.3** - Web framework
+- **Flask-RESTful** - REST API support
+- **Flask-CORS** - Cross-origin resource sharing
+- **Flask-Login** - Session management
+- **Flask-JWT-Extended** - JWT authentication
+- **Flask-Bcrypt** - Password hashing
 
-## Getting Started
+### Database
+- **MongoDB 5.0+** - NoSQL database
+- **PyMongo** - MongoDB driver for Python
+- **Flask-PyMongo** - Flask integration with MongoDB
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/your-username/HerCure.git
-    cd HerCure
-    ```
+### APIs & Services
+- **Stripe API** - Payment processing
+- **Google Maps API** - Location services
+- **Google OAuth** - Social authentication
+- **GROQ API** - Health data integration
 
-2.  **Create and activate a virtual environment:**
-    ```bash
-    python -m venv venv
-    source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
-    ```
+### AI/ML
+- **scikit-learn** - Machine learning algorithms
+- **pandas** - Data manipulation and analysis
+- **numpy** - Numerical computing
+- **transformers** - Natural language processing
+- **torch** - Deep learning framework
 
-3.  **Install dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
+### Development Tools
+- **Git** - Version control
+- **Pip** - Package management
+- **pytest** - Testing framework
+- **black** - Code formatter
+- **flake8** - Code linter
+- **gunicorn** - Production WSGI server
 
-4.  **Run the application:**
-    ```bash
-    python run.py
-    ```
+## 🚀 Getting Started
+
+### Prerequisites
+- Python 3.9+
+- MongoDB 5.0+
+- Stripe account (for payments)
+- Google Cloud Platform account (for OAuth and Maps)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-username/HerCure.git
+   cd HerCure
+   ```
+
+2. **Create and activate a virtual environment**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+   ```
+
+3. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Set up environment variables**
+   Create a `.env` file in the root directory with the following variables:
+   ```env
+   FLASK_APP=run.py
+   FLASK_ENV=development
+   SECRET_KEY=your-secret-key
+   MONGO_URI=mongodb://localhost:27017/hercure
+   STRIPE_PUBLIC_KEY=your-stripe-public-key
+   STRIPE_SECRET_KEY=your-stripe-secret-key
+   GOOGLE_CLIENT_ID=your-google-client-id
+   GOOGLE_CLIENT_SECRET=your-google-client-secret
+   JWT_SECRET_KEY=your-jwt-secret
+   ```
+
+5. **Initialize the database**
+   ```bash
+   python -c "from app import create_app; app = create_app(); from app.models import init_models; init_models()"
+   ```
+
+6. **Run the application**
+   ```bash
+   # Development
+   python run.py
+   
+   # Production
+   gunicorn -w 4 -b 0.0.0.0:5000 run:app
+   ```
+
+The application will be available at `http://localhost:5000`
+
+## 📂 Project Structure
+
+```
+Hercure/
+├── app/                    # Application package
+│   ├── __init__.py        # Application factory
+│   ├── extensions.py      # Flask extensions
+│   ├── models/            # Database models
+│   ├── routes/            # Application routes
+│   ├── static/            # Static files
+│   │   ├── css/           # CSS files
+│   │   ├── js/            # JavaScript files
+│   │   └── img/           # Image assets
+│   └── templates/         # Jinja2 templates
+│       ├── auth/          # Authentication templates
+│       ├── menstrual/     # Menstrual tracking templates
+│       └── shop/          # E-commerce templates
+├── tests/                 # Test cases
+├── .env.example          # Example environment variables
+├── config.py             # Configuration settings
+├── requirements.txt      # Python dependencies
+└── run.py               # Application entry point
+```
+
+## 🌐 API Endpoints
+
+### Authentication
+- `POST /auth/register` - User registration
+- `POST /auth/login` - User login
+- `POST /auth/logout` - User logout
+
+### Menstrual Tracking
+- `GET /api/cycles` - Get cycle history
+- `POST /api/cycles` - Log new cycle data
+- `GET /api/predictions` - Get cycle predictions
+
+### Shop
+- `GET /shop/` - View products
+- `GET /api/products` - Get all products (JSON)
+- `POST /api/cart` - Add to cart
+- `GET /api/orders` - Get order history
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">
+  Made with ❤️ by the Hercure Team
+</div>

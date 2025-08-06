@@ -1,0 +1,39 @@
+{% extends "menstrual/base_menstrual.html" %}
+
+{% block title %}Create Your Profile{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto mt-10 p-8 bg-white rounded-lg shadow-xl">
+    <h1 class="text-3xl font-bold text-gray-800 mb-2 text-center">Welcome to HerCure!</h1>
+    <p class="text-gray-600 mb-8 text-center">Let's set up your menstrual tracking profile to get started.</p>
+
+    <form method="POST" action="{{ url_for('menstrual_enhanced.create_profile') }}" class="space-y-6">
+        {{ form.hidden_tag() if form }}
+        <div>
+            <label for="profile_name" class="block text-sm font-medium text-gray-700">Profile Name</label>
+            <div class="mt-1">
+                <input type="text" name="profile_name" id="profile_name" required
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-brand-pink-500 focus:border-brand-pink-500"
+                       placeholder="e.g., My Profile, Jane's Tracker">
+            </div>
+            <p class="mt-2 text-sm text-gray-500">This name helps you identify this profile if you track for others.</p>
+        </div>
+
+        <div>
+            <label for="date_of_birth" class="block text-sm font-medium text-gray-700">Date of Birth</label>
+            <div class="mt-1">
+                <input type="date" name="date_of_birth" id="date_of_birth" required
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-brand-pink-500 focus:border-brand-pink-500">
+            </div>
+            <p class="mt-2 text-sm text-gray-500">Your age helps in providing more accurate predictions and insights.</p>
+        </div>
+
+        <div class="pt-4">
+            <button type="submit"
+                    class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-brand-pink-500 to-brand-purple-500 hover:from-brand-pink-600 hover:to-brand-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-pink-500 transition-colors">
+                Create Profile & Start Tracking
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

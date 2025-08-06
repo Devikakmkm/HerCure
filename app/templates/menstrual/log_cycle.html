@@ -1,0 +1,216 @@
+{% extends "menstrual/base_menstrual.html" %}
+
+{% block title %}Log Cycle - HerCure{% endblock %}
+
+{% block menstrual_content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-bold text-brand-pink-700">Log Your Cycle</h1>
+            <a href="{{ url_for('menstrual.tracker') }}" class="text-brand-pink-600 hover:text-brand-pink-700">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+        </div>
+
+        <form method="POST" class="space-y-6">
+            {{ form.hidden_tag() }}
+
+            <!-- Display any form errors -->
+            {% if form.errors %}
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                    <strong class="font-bold">Error!</strong>
+                    <ul class="mt-2 list-disc list-inside">
+                    {% for field, errors in form.errors.items() %}
+                        {% for error in errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <!-- Basic Cycle Information -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    {{ form.start_date.label(class="block text-sm font-medium text-brand-gray-700 mb-2")|safe }}
+                    {{ form.start_date(class="w-full rounded-md border-brand-pink-200 focus:border-brand-pink-300 focus:ring focus:ring-brand-pink-200 focus:ring-opacity-50") }}
+                </div>
+                
+                <div>
+                    {{ form.end_date.label(class="block text-sm font-medium text-brand-gray-700 mb-2")|safe }}
+                    {{ form.end_date(class="w-full rounded-md border-brand-pink-200 focus:border-brand-pink-300 focus:ring focus:ring-brand-pink-200 focus:ring-opacity-50") }}
+                    <p class="text-xs text-brand-gray-500 mt-1">Leave empty if period is ongoing</p>
+                </div>
+            </div>
+
+            <!-- Flow Intensity -->
+            <div>
+                {{ form.flow_intensity.label(class="block text-sm font-medium text-brand-gray-700 mb-3")|safe }}
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {% for subfield in form.flow_intensity %}
+                    <label class="relative">
+                        {{ subfield(class="sr-only peer") }}
+                        <div class="border-2 border-brand-pink-200 rounded-lg p-4 text-center cursor-pointer hover:border-brand-pink-300 peer-checked:border-brand-pink-500 peer-checked:ring-2 peer-checked:ring-brand-pink-500 transition-colors">
+                            <i class="fas fa-tint text-2xl mb-2 {{ 'text-blue-400' if subfield.data == 'light' else 'text-red-400' if subfield.data == 'moderate' else 'text-red-600' }}"></i>
+                            <div class="font-medium text-brand-gray-900">{{ subfield.label.text }}</div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Pain Level -->
+            <div>
+                {{ form.pain_level.label(class="block text-sm font-medium text-brand-gray-700 mb-3")|safe }}
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {% for subfield in form.pain_level %}
+                    <label class="relative">
+                        {{ subfield(class="sr-only peer") }}
+                        <div class="border-2 border-brand-pink-200 rounded-lg p-4 text-center cursor-pointer hover:border-brand-pink-300 peer-checked:border-brand-pink-500 peer-checked:ring-2 peer-checked:ring-brand-pink-500 transition-colors">
+                             <i class="fas mb-2 text-2xl {{ 'fa-smile text-green-500' if subfield.data == 'none' else 'fa-meh text-yellow-500' if subfield.data == 'mild' else 'fa-frown text-orange-500' if subfield.data == 'moderate' else 'fa-dizzy text-red-500' }}"></i>
+                            <div class="font-medium text-brand-gray-900">{{ subfield.label.text }}</div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Mood -->
+            <div>
+                {{ form.mood.label(class="block text-sm font-medium text-brand-gray-700 mb-3")|safe }}
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                     {% for subfield in form.mood %}
+                    <label class="relative">
+                        {{ subfield(class="sr-only peer") }}
+                        <div class="border-2 border-brand-pink-200 rounded-lg p-4 text-center cursor-pointer hover:border-brand-pink-300 peer-checked:border-brand-pink-500 peer-checked:ring-2 peer-checked:ring-brand-pink-500 transition-colors">
+                            <i class="fas text-2xl mb-2 {{ 'fa-smile-beam text-yellow-400' if subfield.data == 'happy' else 'fa-meh text-gray-400' if subfield.data == 'normal' else 'fa-sad-tear text-blue-400' if subfield.data == 'sad' else 'fa-angry text-red-500' if subfield.data == 'irritable' else 'fa-flushed text-purple-400' }}"></i>
+                            <div class="font-medium text-brand-gray-900">{{ subfield.label.text }}</div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Symptoms -->
+            <div>
+                {{ form.symptoms.label(class="block text-sm font-medium text-brand-gray-700 mb-3")|safe }}
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="symptoms-container">
+                    {% for value, label in form.symptoms.choices %}
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" name="symptoms" value="{{ value }}" class="symptom-checkbox rounded border-brand-pink-300 text-brand-pink-600 focus:ring-brand-pink-500"
+                            {% if value in form.symptoms.data %}checked{% endif %}>
+                        <span class="text-sm text-brand-gray-700">{{ label }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div>
+                {{ form.notes.label(class="block text-sm font-medium text-brand-gray-700 mb-2")|safe }}
+                {{ form.notes(rows=4, class="w-full rounded-md border-brand-pink-200 focus:border-brand-pink-300 focus:ring focus:ring-brand-pink-200 focus:ring-opacity-50", placeholder="Any additional observations, medications taken, or other notes...") }}
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="flex justify-end space-x-4 pt-4">
+                <a href="{{ url_for('menstrual.tracker') }}" class="px-6 py-2 border border-brand-gray-300 rounded-md text-sm font-medium text-brand-gray-700 hover:bg-brand-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-pink-500">
+                    Cancel
+                </a>
+                <button type="submit" class="px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand-pink-600 hover:bg-brand-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-pink-500">
+                    Log Cycle
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle radio button styling
+    const radioGroups = document.querySelectorAll('input[type="radio"]');
+    radioGroups.forEach(radio => {
+        // Initialize active state
+        if (radio.checked) {
+            radio.closest('label').querySelector('div').classList.add('border-brand-pink-500', 'bg-brand-pink-50');
+        }
+        
+        radio.addEventListener('change', function() {
+            // Remove active class from siblings
+            const siblings = this.closest('div').querySelectorAll('input[type="radio"]');
+            siblings.forEach(sib => {
+                sib.closest('label').querySelector('div').classList.remove('border-brand-pink-500', 'bg-brand-pink-50');
+                sib.closest('label').querySelector('div').classList.add('border-brand-pink-200');
+            });
+            
+            // Add active class to selected
+            this.closest('label').querySelector('div').classList.remove('border-brand-pink-200');
+            this.closest('label').querySelector('div').classList.add('border-brand-pink-500', 'bg-brand-pink-50');
+        });
+    });
+
+    // Auto-calculate end date if not provided
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    const form = document.querySelector('form');
+    
+    // Initialize end date if start date is already set
+    if (startDateInput.value && !endDateInput.value) {
+        const startDate = new Date(startDateInput.value);
+        const endDate = new Date(startDate);
+        endDate.setDate(endDate.getDate() + 5);
+        endDateInput.value = endDate.toISOString().split('T')[0];
+    }
+
+    startDateInput.addEventListener('change', function() {
+        if (!endDateInput.value) {
+            const startDate = new Date(this.value);
+            const endDate = new Date(startDate);
+            endDate.setDate(endDate.getDate() + 5); // Default 5-day period
+            endDateInput.value = endDate.toISOString().split('T')[0];
+        }
+    });
+
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        if (!startDateInput.value) {
+            e.preventDefault();
+            alert('Please select a start date');
+            startDateInput.focus();
+            return false;
+        }
+        
+        if (!endDateInput.value) {
+            e.preventDefault();
+            alert('Please select an end date');
+            endDateInput.focus();
+            return false;
+        }
+        
+        // Convert to Date objects for comparison
+        const startDate = new Date(startDateInput.value);
+        const endDate = new Date(endDateInput.value);
+        
+        if (endDate < startDate) {
+            e.preventDefault();
+            alert('End date cannot be before start date');
+            endDateInput.focus();
+            return false;
+        }
+        
+        return true;
+    });
+});
+</script>
+
+<style>
+input[type="radio"]:checked + div {
+    border-color: #ec4899;
+    background-color: #fdf2f8;
+}
+
+input[type="checkbox"]:checked {
+    background-color: #ec4899;
+    border-color: #ec4899;
+}
+</style>
+{% endblock %} 

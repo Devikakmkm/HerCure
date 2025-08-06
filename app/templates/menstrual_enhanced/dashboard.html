@@ -1,0 +1,776 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Removed inline styles and relying on base template's styles -->
+<div class="min-h-screen">
+    <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Enhanced Menstrual Tracking</h1>
+            <p class="mt-2 text-lg text-gray-600">Comprehensive cycle tracking with AI-powered insights</p>
+        </div>
+
+        <!-- Quick Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-2 bg-brand-pink-100 rounded-lg">
+                        <i class="fas fa-calendar-day text-brand-pink-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Current Cycle Day</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ current_cycle_day or 'N/A' }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-2 bg-brand-red-100 rounded-lg">
+                        <i class="fas fa-heart text-brand-red-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Next Period</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ next_period_days if next_period_days is not none else 'N/A' }} days</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-2 bg-brand-pink-100 rounded-lg">
+                        <i class="fas fa-seedling text-brand-pink-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Fertile Window</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ fertile_window_status or 'N/A' }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-2 bg-brand-teal-100 rounded-lg">
+                        <i class="fas fa-chart-line text-brand-teal-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Cycle Regularity</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ cycle_regularity if cycle_regularity is not none else 'N/A' }}%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- AI Insights Section -->
+        <div class="bg-white rounded-lg shadow mb-8">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-medium text-gray-900">AI Health Insights (MedBERT)</h3>
+            </div>
+            <div class="p-6">
+                {% if ai_insights %}
+                    <div class="space-y-4">
+                        {% for insight in ai_insights %}
+                        <div class="p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                            <div class="flex">
+                                <i class="fas fa-brain text-blue-400 mt-1 mr-3"></i>
+                                <div>
+                                    <p class="font-medium text-blue-800">{{ insight.title }}</p>
+                                    <p class="text-blue-700 mt-1">{{ insight.description }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-brain text-4xl mb-4"></i>
+                        <p>AI insights will appear here as you log more data</p>
+                        <p class="text-sm mt-2">Start tracking to get personalized health insights</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <!-- Cycle History Section -->
+        <div class="bg-white rounded-lg shadow mb-8">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-medium text-gray-900">Cycle History & Abnormalities</h3>
+            </div>
+            <div class="p-6">
+                {% if cycles %}
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Start Date</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">End Date</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Length</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Abnormality</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% set avg_length = cycles|length > 1 and ((cycles[0].start_date - cycles[1].start_date).days) or 28 %}
+                            {% for i in range(cycles|length - 1) %}
+                                {% set cycle = cycles[i] %}
+                                {% set next_cycle = cycles[i+1] %}
+                                {% set length = (cycle.start_date - next_cycle.start_date).days %}
+                                <tr>
+                                    <td class="px-4 py-2">{{ cycle.start_date.strftime('%b %d, %Y') }}</td>
+                                    <td class="px-4 py-2">{{ cycle.end_date.strftime('%b %d, %Y') if cycle.end_date else 'Ongoing' }}</td>
+                                    <td class="px-4 py-2">{{ length }} days</td>
+                                    <td class="px-4 py-2">
+                                        {% if length < 21 or length > 35 %}
+                                            <span title="Abnormal duration" class="text-red-600"><i class="fas fa-exclamation-triangle"></i></span>
+                                        {% else %}
+                                            <span title="Normal" class="text-green-600"><i class="fas fa-check-circle"></i></span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="text-gray-500 text-center py-4">No cycle history available</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Main Feature Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Quick Actions -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Quick Actions</h3>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <a href="{{ url_for('menstrual_enhanced.log_cycle') }}" class="flex items-center p-3 bg-brand-pink-50 rounded-lg hover:bg-brand-pink-100 transition-colors">
+                            <i class="fas fa-plus-circle text-brand-pink-600 text-xl mr-3"></i>
+                            <span class="font-medium text-brand-pink-700">Log New Cycle</span>
+                        </a>
+                        
+                        <a href="{{ url_for('menstrual_enhanced.log_symptoms') }}" class="flex items-center p-3 bg-brand-red-50 rounded-lg hover:bg-brand-red-100 transition-colors">
+                            <i class="fas fa-notes-medical text-brand-red-600 text-xl mr-3"></i>
+                            <span class="font-medium text-brand-red-700">Log Symptoms</span>
+                        </a>
+                        
+                        <a href="{{ url_for('menstrual_enhanced.reminders') }}" class="flex items-center p-3 bg-brand-teal-50 rounded-lg hover:bg-brand-teal-100 transition-colors">
+                            <i class="fas fa-bell text-brand-teal-600 text-xl mr-3"></i>
+                            <span class="font-medium text-brand-teal-700">Manage Reminders</span>
+                        </a>
+                        
+                        <a href="{{ url_for('menstrual_enhanced.voice_log') }}" class="flex items-center p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+                            <i class="fas fa-microphone text-purple-600 text-xl mr-3"></i>
+                            <span class="font-medium text-purple-700">Voice Logging</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Upcoming Reminders -->
+                <div class="bg-white rounded-lg shadow mt-6">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Upcoming Reminders</h3>
+                    </div>
+                    <div class="p-6">
+                        {% if upcoming_reminders %}
+                            <div class="space-y-3">
+                                {% for reminder in upcoming_reminders %}
+                                <div class="flex items-center p-3 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors">
+                                    <div class="flex-shrink-0 bg-yellow-100 p-2 rounded-full">
+                                        <i class="fas fa-bell text-yellow-600"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="font-medium text-yellow-800">{{ reminder.title }}</p>
+                                        <div class="flex items-center text-sm text-yellow-600">
+                                            <i class="far fa-clock mr-1"></i>
+                                            {% set scheduled_date = reminder.scheduled_date %}
+                                            {% if scheduled_date is string %}
+                                                {% set scheduled_date = (scheduled_date | to_datetime) %}
+                                            {% endif %}
+                                            <span>{{ scheduled_date.strftime('%b %d, %Y at %I:%M %p') }}</span>
+                                        </div>
+                                        {% if reminder.message %}
+                                            <p class="mt-1 text-sm text-yellow-700">{{ reminder.message }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-gray-500 text-center py-4">No upcoming reminders</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Calendar View -->
+                <div class="bg-white rounded-lg shadow">
+                    <div class="p-6 border-b border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-medium text-gray-900">Cycle Calendar</h3>
+                            <a href="{{ url_for('menstrual_enhanced.calendar') }}" class="text-brand-pink-600 hover:text-brand-pink-700 font-medium">View Full Calendar</a>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-calendar-alt text-4xl mb-4"></i>
+                            <p>Interactive calendar view will be displayed here</p>
+                            <p class="text-sm mt-2">Click "View Full Calendar" for detailed view</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-white rounded-lg shadow">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Recent Activity</h3>
+                    </div>
+                    <div class="p-6">
+                        {% if recent_symptoms %}
+                            <div class="space-y-4">
+                                {% for symptom in recent_symptoms %}
+                                <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                    <div class="flex-shrink-0">
+                                        {% if symptom.emoji_rating %}
+                                            <span class="text-2xl">{{ symptom.emoji_rating }}</span>
+                                        {% else %}
+                                            <i class="fas fa-notes-medical text-gray-400"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="ml-4 flex-1">
+                                        <p class="font-medium text-gray-900">{{ symptom.symptoms|join(', ') if symptom.symptoms else 'General log' }}</p>
+                                        <p class="text-sm text-gray-500">{{ symptom.date.strftime('%B %d, %Y') }} - {{ symptom.mood or 'No mood recorded' }}</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-gray-500 text-center py-4">No recent activity</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- AI Insights -->
+                <div class="bg-white rounded-lg shadow">
+                    <div class="p-6 border-b border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-medium text-gray-900">AI Health Insights</h3>
+                            <a href="{{ url_for('menstrual_enhanced.ai_insights') }}" class="text-brand-teal-600 hover:text-brand-teal-700 font-medium">View All Insights</a>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        {% if ai_insights %}
+                            <div class="space-y-4">
+                                {% for insight in ai_insights %}
+                                <div class="p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                                    <div class="flex">
+                                        <i class="fas fa-brain text-blue-400 mt-1 mr-3"></i>
+                                        <div>
+                                            <p class="font-medium text-blue-800">{{ insight.title }}</p>
+                                            <p class="text-blue-700 mt-1">{{ insight.description }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-8 text-gray-500">
+                                <i class="fas fa-brain text-4xl mb-4"></i>
+                                <p>AI insights will appear here as you log more data</p>
+                                <p class="text-sm mt-2">Start tracking to get personalized health insights</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Health Reports Card -->
+        <div class="bg-white rounded-lg shadow mb-8">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Health Report Analysis</h3>
+                <p class="text-sm text-gray-500 mt-1">Upload medical reports for AI-powered insights</p>
+            </div>
+            <div class="p-6">
+                <div id="upload-container" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-brand-pink-400 transition-colors duration-300 cursor-pointer">
+                    <div class="flex flex-col items-center justify-center space-y-3">
+                        <i class="fas fa-file-medical text-3xl text-brand-pink-500"></i>
+                        <h4 class="font-medium text-gray-800">Upload Health Report</h4>
+                        <p class="text-sm text-gray-500">Drag & drop PDF or click to browse</p>
+                        <p class="text-xs text-gray-400">Max 10MB • PDF only</p>
+                    </div>
+                    <input type="file" id="report-upload" class="hidden" accept=".pdf" />
+                </div>
+                
+                <div id="upload-progress" class="hidden mt-4">
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div id="progress-bar" class="bg-brand-pink-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                    <p id="progress-text" class="text-xs text-gray-500 text-center mt-2">Processing your report...</p>
+                </div>
+
+                <div id="results-section" class="mt-4 hidden">
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="font-medium text-gray-800">Analysis Results</h4>
+                        <button id="download-pdf" class="text-xs flex items-center space-x-1 text-brand-pink-600 hover:text-brand-pink-800">
+                            <i class="fas fa-download"></i>
+                            <span>Download PDF</span>
+                        </button>
+                    </div>
+                    
+                    <div class="text-sm bg-gray-50 p-4 rounded-lg max-h-40 overflow-y-auto" id="analysis-results">
+                        <!-- Analysis content will be inserted here -->
+                    </div>
+                    
+                    <div class="mt-3 pt-2 border-t border-gray-100 text-right">
+                        <button id="new-analysis" class="text-xs text-brand-pink-600 hover:text-brand-pink-800">
+                            <i class="fas fa-redo mr-1"></i> New Analysis
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Modal -->
+        <div id="loading-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                <div class="flex flex-col items-center">
+                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-pink-500 mb-4"></div>
+                    <h3 class="text-lg font-medium text-gray-800 mb-2">Analyzing Report</h3>
+                    <p class="text-sm text-gray-600 text-center">This may take a moment. Please wait...</p>
+                    <p id="analysis-status" class="text-xs text-gray-500 mt-3">Initializing analysis...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature Navigation -->
+        <div class="mt-12">
+            <h3 class="text-lg font-medium text-gray-900 mb-6">Explore All Features</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <a href="{{ url_for('nearby.nearby_medical_facilities') }}" class="flex flex-col items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+                    <i class="fas fa-map-marker-alt text-brand-red-600 text-2xl mb-2"></i>
+                    <span class="text-sm font-medium text-gray-700 text-center">Nearby Medical</span>
+                </a>
+                
+                <a href="{{ url_for('menstrual_enhanced.lifestyle') }}" class="flex flex-col items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+                    <i class="fas fa-leaf text-green-600 text-2xl mb-2"></i>
+                    <span class="text-sm font-medium text-gray-700 text-center">Lifestyle Tips</span>
+                </a>
+                
+                <a href="{{ url_for('menstrual_enhanced.profiles') }}" class="flex flex-col items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+                    <i class="fas fa-users text-purple-600 text-2xl mb-2"></i>
+                    <span class="text-sm font-medium text-gray-700 text-center">Multi Profiles</span>
+                </a>
+                
+                <a href="{{ url_for('menstrual_enhanced.community') }}" class="flex flex-col items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+                    <i class="fas fa-comments text-brand-pink-600 text-2xl mb-2"></i>
+                    <span class="text-sm font-medium text-gray-700 text-center">Community</span>
+                </a>
+                
+                <a href="{{ url_for('menstrual_enhanced.privacy') }}" class="flex flex-col items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+                    <i class="fas fa-shield-alt text-gray-600 text-2xl mb-2"></i>
+                    <span class="text-sm font-medium text-gray-700 text-center">Privacy & Data</span>
+                </a>
+                
+                <a href="{{ url_for('menstrual_enhanced.integrations') }}" class="flex flex-col items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+                    <i class="fas fa-link text-blue-600 text-2xl mb-2"></i>
+                    <span class="text-sm font-medium text-gray-700 text-center">Integrations</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadContainer = document.getElementById('upload-container');
+    const fileInput = document.getElementById('report-upload');
+    const uploadProgress = document.getElementById('upload-progress');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const resultsSection = document.getElementById('results-section');
+    const analysisResults = document.getElementById('analysis-results');
+    const downloadPdfBtn = document.getElementById('download-pdf');
+    const newAnalysisBtn = document.getElementById('new-analysis');
+    const loadingModal = document.getElementById('loading-modal');
+    const analysisStatus = document.getElementById('analysis-status');
+    const analysisDate = document.getElementById('analysis-date');
+    
+    let currentPdfUrl = '';
+    
+    // Handle drag and drop
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadContainer.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadContainer.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadContainer.addEventListener(eventName, unhighlight, false);
+    });
+    
+    function highlight() {
+        uploadContainer.classList.add('border-brand-pink-400', 'bg-brand-pink-50');
+    }
+    
+    function unhighlight() {
+        uploadContainer.classList.remove('border-brand-pink-400', 'bg-brand-pink-50');
+    }
+    
+    // Handle file drop
+    uploadContainer.addEventListener('drop', handleDrop, false);
+    uploadContainer.addEventListener('click', () => fileInput.click());
+    
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleFiles(files);
+    }
+    
+    // Handle file selection
+    fileInput.addEventListener('change', function() {
+        if (this.files.length) {
+            handleFiles(this.files);
+        }
+    });
+    
+    // Process selected files
+    function handleFiles(files) {
+        const file = files[0];
+        
+        // Validate file type
+        if (file.type !== 'application/pdf') {
+            showError('Please upload a valid PDF file.');
+            return;
+        }
+        
+        // Validate file size (10MB max)
+        if (file.size > 10 * 1024 * 1024) {
+            showError('File size should not exceed 10MB.');
+            return;
+        }
+        
+        // Show loading state
+        uploadProgress.classList.remove('hidden');
+        updateProgress(10, 'Uploading your report...');
+        
+        // Prepare form data
+        const formData = new FormData();
+        formData.append('report', file);
+        
+        // Add CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        
+        // Upload file
+        fetch('/health-reports/upload', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': csrfToken
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Upload failed');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            updateProgress(50, 'Analyzing report...');
+            showLoadingModal();
+            return fetch('/health-reports/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ filename: data.filename })
+            });
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Analysis failed');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            updateProgress(100, 'Analysis complete!');
+            hideLoadingModal();
+            showResults(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            hideLoadingModal();
+            uploadProgress.classList.add('hidden');
+            showError(error.message || 'An error occurred while processing your report.');
+        });
+    }
+    
+    // Update progress bar and text
+    function updateProgress(percent, text) {
+        progressBar.style.width = `${percent}%`;
+        progressText.textContent = text;
+    }
+    
+    // Show loading modal
+    function showLoadingModal() {
+        loadingModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    // Hide loading modal
+    function hideLoadingModal() {
+        loadingModal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+    
+    // Update status in loading modal
+    function updateStatus(text) {
+        if (analysisStatus) {
+            analysisStatus.textContent = text;
+        }
+    }
+    
+    // Show error message
+    function showError(message) {
+        // You can implement a more sophisticated error display
+        alert('Error: ' + message);
+    }
+    
+    // Show analysis results
+    function showResults(data) {
+        uploadProgress.classList.add('hidden');
+        resultsSection.classList.remove('hidden');
+        
+        try {
+            // Parse the analysis data if it's a string
+            const analysisData = typeof data.analysis === 'string' ? JSON.parse(data.analysis) : data.analysis;
+            
+            // Clear previous results
+            analysisResults.innerHTML = '';
+            
+            // Create a container for the analysis content
+            const analysisContainer = document.createElement('div');
+            analysisContainer.className = 'space-y-4';
+            
+            // Add analysis sections
+            if (analysisData.summary) {
+                const summarySection = createAnalysisSection('Summary', analysisData.summary);
+                analysisContainer.appendChild(summarySection);
+            }
+            
+            if (analysisData.keyFindings && analysisData.keyFindings.length > 0) {
+                const findingsSection = createKeyFindingsSection(analysisData.keyFindings);
+                analysisContainer.appendChild(findingsSection);
+            }
+            
+            if (analysisData.recommendations && analysisData.recommendations.length > 0) {
+                const recSection = createRecommendationsSection(analysisData.recommendations);
+                analysisContainer.appendChild(recSection);
+            }
+            
+            // Add the analysis container to the results
+            analysisResults.appendChild(analysisContainer);
+            
+            // Set the current PDF URL for download
+            currentPdfUrl = data.pdf_url;
+            
+            // Update analysis date
+            const now = new Date();
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            
+            // Add a timestamp to the results
+            const timestamp = document.createElement('div');
+            timestamp.className = 'text-xs text-gray-500 mt-4 text-right';
+            timestamp.textContent = `Analyzed on: ${now.toLocaleDateString('en-US', options)}`;
+            analysisResults.appendChild(timestamp);
+            
+            // Scroll to results
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+            
+        } catch (error) {
+            console.error('Error displaying analysis results:', error);
+            showError('Error displaying analysis results. Please try again.');
+        }
+    }
+    
+    // Helper function to create a section with title and content
+    function createAnalysisSection(title, content) {
+        const section = document.createElement('div');
+        section.className = 'mb-6';
+        
+        const titleEl = document.createElement('h4');
+        titleEl.className = 'text-lg font-semibold text-gray-800 mb-2';
+        titleEl.textContent = title;
+        
+        const contentEl = document.createElement('div');
+        contentEl.className = 'bg-gray-50 p-4 rounded-lg';
+        contentEl.innerHTML = formatAnalysis(content);
+        
+        section.appendChild(titleEl);
+        section.appendChild(contentEl);
+        return section;
+    }
+    
+    // Helper function to create key findings section
+    function createKeyFindingsSection(findings) {
+        const section = document.createElement('div');
+        section.className = 'mb-6';
+        
+        const title = document.createElement('h4');
+        title.className = 'text-lg font-semibold text-gray-800 mb-2';
+        title.textContent = 'Key Findings';
+        
+        const list = document.createElement('ul');
+        list.className = 'space-y-2';
+        
+        findings.forEach(finding => {
+            const item = document.createElement('li');
+            item.className = 'flex items-start';
+            
+            const icon = document.createElement('i');
+            icon.className = 'fas fa-chevron-right text-brand-pink-500 mt-1 mr-2 text-xs';
+            
+            const text = document.createElement('div');
+            text.className = 'flex-1';
+            text.innerHTML = formatAnalysis(finding);
+            
+            item.appendChild(icon);
+            item.appendChild(text);
+            list.appendChild(item);
+        });
+        
+        section.appendChild(title);
+        section.appendChild(list);
+        return section;
+    }
+    
+    // Helper function to create recommendations section
+    function createRecommendationsSection(recommendations) {
+        const section = document.createElement('div');
+        section.className = 'mb-6';
+        
+        const title = document.createElement('h4');
+        title.className = 'text-lg font-semibold text-gray-800 mb-2';
+        title.textContent = 'Recommendations';
+        
+        const list = document.createElement('ol');
+        list.className = 'list-decimal list-inside space-y-2';
+        
+        recommendations.forEach(rec => {
+            const item = document.createElement('li');
+            item.className = 'text-gray-700';
+            item.innerHTML = formatAnalysis(rec);
+            list.appendChild(item);
+        });
+        
+        section.appendChild(title);
+        section.appendChild(list);
+        return section;
+    }
+    
+    // Format the analysis text with proper formatting
+    function formatAnalysis(text) {
+        if (!text) return '<p class="text-gray-500 italic">No information available.</p>';
+        
+        // If it's an array, join with line breaks
+        if (Array.isArray(text)) {
+            text = text.join('\n\n');
+        }
+        
+        // Convert to string in case it's a number or other type
+        text = String(text);
+        
+        // Replace markdown-style formatting with HTML
+        let html = text
+            // Headers
+            .replace(/^#\s+(.*)$/gm, '<h5 class="text-md font-semibold mt-4 mb-2 text-gray-800">$1</h5>')
+            .replace(/^##\s+(.*)$/gm, '<h6 class="text-sm font-medium mt-3 mb-1 text-gray-700">$1</h6>')
+            // Bold and italic
+            .replace(/\*\*(.*?)\*\*/g, '<span class="font-semibold text-gray-900">$1</span>')
+            .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+            // Links
+            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="text-brand-pink-600 hover:underline" target="_blank">$1</a>')
+            // Lists
+            .replace(/^\s*[-*]\s+(.*)$/gm, '<li class="ml-4">$1</li>')
+            // Multiple newlines to paragraphs
+            .replace(/\n\s*\n/g, '</p><p class="mt-2">')
+            // Single newlines to line breaks
+            .replace(/\n/g, '<br>');
+        
+        // Handle lists
+        html = html.replace(/<li[^>]*>.*<\/li>(?=(?:[^<]*<li[^>]*>.*<\/li>)*[^<]*$)/g, function(match) {
+            return '<ul class="list-disc pl-5 space-y-1 my-2">' + match + '</ul>';
+        });
+        
+        // Wrap in paragraphs if needed
+        if (!html.startsWith('<h') && !html.startsWith('<p>') && !html.startsWith('<ul>') && !html.startsWith('<ol>')) {
+            html = '<p class="text-gray-700">' + html + '</p>';
+        }
+        
+        return html;
+    }
+    
+    // Download PDF
+    if (downloadPdfBtn) {
+        downloadPdfBtn.addEventListener('click', function() {
+            if (currentPdfUrl) {
+                // Create a temporary link to trigger the download
+                const link = document.createElement('a');
+                link.href = currentPdfUrl;
+                link.download = 'health-report-analysis-' + new Date().toISOString().split('T')[0] + '.pdf';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                // If no PDF URL is available, create a text file with the analysis
+                const analysisText = document.getElementById('analysis-results').textContent;
+                const blob = new Blob([analysisText], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'health-report-analysis-' + new Date().toISOString().split('T')[0] + '.txt';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
+        });
+    }
+    
+    // New analysis
+    if (newAnalysisBtn) {
+        newAnalysisBtn.addEventListener('click', function() {
+            // Reset the form
+            fileInput.value = '';
+            uploadProgress.classList.add('hidden');
+            resultsSection.classList.add('hidden');
+            progressBar.style.width = '0%';
+            progressText.textContent = 'Processing your report...';
+            
+            // Scroll to upload section
+            uploadContainer.scrollIntoView({ behavior: 'smooth' });
+        });
+    }
+});
+</script>
+{% endblock %}

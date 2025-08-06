@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Lifestyle Recommendations</h1>
+            <p class="mt-2 text-lg text-gray-600">Personalized tips for diet, exercise, and wellness based on your cycle phase</p>
+        </div>
+
+        <!-- Current Cycle Phase -->
+        <div class="mb-8 p-6 bg-white rounded-lg shadow">
+            <h2 class="text-2xl font-bold text-gray-900">Current Phase: <span class="text-brand-pink-600">{{ current_phase.name }}</span></h2>
+            <p class="mt-2 text-gray-600">{{ current_phase.description }}</p>
+        </div>
+
+        <!-- Recommendations Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Diet Recommendations -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-green-100 rounded-lg">
+                            <i class="fas fa-leaf text-green-600 text-2xl"></i>
+                        </div>
+                        <h3 class="ml-4 text-lg font-medium text-gray-900">Diet & Nutrition</h3>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <ul class="space-y-4">
+                        {% for tip in diet_recommendations %}
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                            <div>
+                                <h4 class="font-medium text-gray-800">{{ tip.title }}</h4>
+                                <p class="text-sm text-gray-600">{{ tip.description }}</p>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Exercise Recommendations -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-brand-red-100 rounded-lg">
+                            <i class="fas fa-dumbbell text-brand-red-600 text-2xl"></i>
+                        </div>
+                        <h3 class="ml-4 text-lg font-medium text-gray-900">Exercise & Fitness</h3>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <ul class="space-y-4">
+                        {% for tip in exercise_recommendations %}
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-brand-red-500 mt-1 mr-3"></i>
+                            <div>
+                                <h4 class="font-medium text-gray-800">{{ tip.title }}</h4>
+                                <p class="text-sm text-gray-600">{{ tip.description }}</p>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Mental Wellness Recommendations -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-purple-100 rounded-lg">
+                            <i class="fas fa-brain text-purple-600 text-2xl"></i>
+                        </div>
+                        <h3 class="ml-4 text-lg font-medium text-gray-900">Mental Wellness</h3>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <ul class="space-y-4">
+                        {% for tip in wellness_recommendations %}
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-purple-500 mt-1 mr-3"></i>
+                            <div>
+                                <h4 class="font-medium text-gray-800">{{ tip.title }}</h4>
+                                <p class="text-sm text-gray-600">{{ tip.description }}</p>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cycle Phases Overview -->
+        <div class="mt-12">
+            <h3 class="text-xl font-bold text-gray-900 mb-6 text-center">Understanding Your Cycle Phases</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Menstrual Phase -->
+                <div class="p-6 bg-white rounded-lg shadow text-center">
+                    <h4 class="font-bold text-brand-pink-600">Menstrual Phase</h4>
+                    <p class="text-sm text-gray-500 mt-1">Days 1-5</p>
+                    <p class="text-sm text-gray-600 mt-2">Energy is lowest. Focus on rest and gentle movement.</p>
+                </div>
+                <!-- Follicular Phase -->
+                <div class="p-6 bg-white rounded-lg shadow text-center">
+                    <h4 class="font-bold text-brand-teal-600">Follicular Phase</h4>
+                    <p class="text-sm text-gray-500 mt-1">Days 1-13</p>
+                    <p class="text-sm text-gray-600 mt-2">Energy increases. Good time for creativity and new projects.</p>
+                </div>
+                <!-- Ovulatory Phase -->
+                <div class="p-6 bg-white rounded-lg shadow text-center">
+                    <h4 class="font-bold text-green-600">Ovulatory Phase</h4>
+                    <p class="text-sm text-gray-500 mt-1">Day 14</p>
+                    <p class="text-sm text-gray-600 mt-2">Peak energy and confidence. Ideal for high-intensity workouts.</p>
+                </div>
+                <!-- Luteal Phase -->
+                <div class="p-6 bg-white rounded-lg shadow text-center">
+                    <h4 class="font-bold text-purple-600">Luteal Phase</h4>
+                    <p class="text-sm text-gray-500 mt-1">Days 15-28</p>
+                    <p class="text-sm text-gray-600 mt-2">Energy begins to decrease. Focus on self-care and mindful activities.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

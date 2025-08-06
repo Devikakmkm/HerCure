@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Menstrual Tracker{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex flex-col md:flex-row gap-6">
+        <!-- Sidebar Navigation -->
+        <div class="w-full md:w-64 flex-shrink-0">
+            <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+                <h2 class="text-xl font-bold text-brand-pink-700 mb-4">Menstrual Tracker</h2>
+                <nav class="space-y-2">
+                    <a href="{{ url_for('menstrual.tracker') }}" 
+                       class="block px-4 py-2 rounded-md hover:bg-brand-pink-50 text-brand-pink-700 {% if request.endpoint == 'menstrual.tracker' %}bg-brand-pink-50 font-medium{% endif %}">
+                        <i class="fas fa-home mr-2"></i> Dashboard
+                    </a>
+                    <a href="{{ url_for('menstrual.log_cycle') }}" 
+                       class="block px-4 py-2 rounded-md hover:bg-brand-pink-50 text-brand-pink-700 {% if request.endpoint == 'menstrual.log_cycle' %}bg-brand-pink-50 font-medium{% endif %}">
+                        <i class="fas fa-plus-circle mr-2"></i> Log Period
+                    </a>
+                    <a href="{{ url_for('menstrual.cycle_calendar') }}" 
+                       class="block px-4 py-2 rounded-md hover:bg-brand-pink-50 text-brand-pink-700 {% if request.endpoint == 'menstrual.cycle_calendar' %}bg-brand-pink-50 font-medium{% endif %}">
+                        <i class="far fa-calendar-alt mr-2"></i> Calendar
+                    </a>
+                    <a href="{{ url_for('menstrual.cycle_history') }}" 
+                       class="block px-4 py-2 rounded-md hover:bg-brand-pink-50 text-brand-pink-700 {% if request.endpoint == 'menstrual.cycle_history' %}bg-brand-pink-50 font-medium{% endif %}">
+                        <i class="fas fa-history mr-2"></i> Cycle History
+                    </a>
+                    <a href="{{ url_for('menstrual.analytics') }}" 
+                       class="block px-4 py-2 rounded-md hover:bg-brand-pink-50 text-brand-pink-700 {% if request.endpoint == 'menstrual.analytics' %}bg-brand-pink-50 font-medium{% endif %}">
+                        <i class="fas fa-chart-line mr-2"></i> Analytics
+                    </a>
+                    <a href="{{ url_for('menstrual.wellness_quiz') }}" 
+                       class="block px-4 py-2 rounded-md hover:bg-brand-pink-50 text-brand-pink-700 {% if request.endpoint == 'menstrual.wellness_quiz' %}bg-brand-pink-50 font-medium{% endif %}">
+                        <i class="fas fa-heartbeat mr-2"></i> Wellness Quiz
+                    </a>
+                </nav>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1">
+
+            
+            {% block menstrual_content %}{% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Common JavaScript for menstrual tracking
+$(document).ready(function() {
+    // Initialize date pickers
+    $('.datepicker').datepicker({
+        format: 'yyyy-mm-dd',
+        autoclose: true,
+        todayHighlight: true
+    });
+    
+    // Toggle symptom checkboxes
+    $('.symptom-checkbox').change(function() {
+        const symptom = $(this).val();
+        const isChecked = $(this).is(':checked');
+        
+        // Show/hide severity selector
+        $(`#severity-${symptom}`).toggleClass('hidden', !isChecked);
+    });
+});
+</script>
+{% endblock %}

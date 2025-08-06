@@ -1,0 +1,355 @@
+{% extends "menstrual/base_menstrual.html" %}
+
+{% block title %}AI Analytics & Insights - HerCure{% endblock %}
+
+{% block menstrual_content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-brand-pink-700 flex items-center">
+                    <i class="fas fa-brain text-brand-pink-600 mr-3"></i>
+                    AI Analytics & Insights
+                </h1>
+                <p class="text-brand-gray-600 mt-1">AI-powered analysis of your menstrual health patterns</p>
+            </div>
+            <div class="flex space-x-2">
+                <button onclick="refreshAnalytics()" class="px-4 py-2 bg-brand-pink-600 text-white rounded-md hover:bg-brand-pink-700 transition-colors">
+                    <i class="fas fa-sync-alt mr-2"></i>Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {% if stats %}
+        <!-- Key Metrics Dashboard -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="bg-gradient-to-r from-brand-pink-50 to-brand-pink-100 rounded-lg p-6 border border-brand-pink-200">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-calendar-alt text-2xl text-brand-pink-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-sm font-medium text-brand-pink-800">Average Cycle</h3>
+                        <p class="text-2xl font-bold text-brand-pink-700">{{ stats.avg_cycle_length }} days</p>
+                        <p class="text-xs text-brand-pink-600">
+                            {% if stats.avg_cycle_length >= 21 and stats.avg_cycle_length <= 35 %}
+                                <i class="fas fa-check-circle mr-1"></i>Normal range
+                            {% else %}
+                                <i class="fas fa-exclamation-triangle mr-1"></i>Outside normal range
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gradient-to-r from-brand-teal-50 to-brand-teal-100 rounded-lg p-6 border border-brand-teal-200">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-clock text-2xl text-brand-teal-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-sm font-medium text-brand-teal-800">Period Length</h3>
+                        <p class="text-2xl font-bold text-brand-teal-700">{{ stats.avg_period_length }} days</p>
+                        <p class="text-xs text-brand-teal-600">
+                            {% if stats.avg_period_length >= 2 and stats.avg_period_length <= 7 %}
+                                <i class="fas fa-check-circle mr-1"></i>Normal range
+                            {% else %}
+                                <i class="fas fa-exclamation-triangle mr-1"></i>Outside normal range
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gradient-to-r from-brand-green-50 to-brand-green-100 rounded-lg p-6 border border-brand-green-200">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-chart-line text-2xl text-brand-green-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-sm font-medium text-brand-green-800">Regularity Score</h3>
+                        <p class="text-2xl font-bold text-brand-green-700">{{ stats.cycle_regularity }}%</p>
+                        <p class="text-xs text-brand-green-600">
+                            {% if stats.cycle_regularity >= 80 %}
+                                <i class="fas fa-star mr-1"></i>Very regular
+                            {% elif stats.cycle_regularity >= 60 %}
+                                <i class="fas fa-thumbs-up mr-1"></i>Moderately regular
+                            {% else %}
+                                <i class="fas fa-exclamation-triangle mr-1"></i>Irregular
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gradient-to-r from-brand-purple-50 to-brand-purple-100 rounded-lg p-6 border border-brand-purple-200">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-database text-2xl text-brand-purple-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-sm font-medium text-brand-purple-800">Total Cycles</h3>
+                        <p class="text-2xl font-bold text-brand-purple-700">{{ stats.total_cycles }}</p>
+                        <p class="text-xs text-brand-purple-600">
+                            {% if stats.total_cycles >= 6 %}
+                                <i class="fas fa-chart-bar mr-1"></i>Good data
+                            {% else %}
+                                <i class="fas fa-info-circle mr-1"></i>Need more data
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI-Powered Insights -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold text-brand-pink-700 mb-6 flex items-center">
+                <i class="fas fa-brain text-brand-pink-600 mr-3"></i>
+                AI-Powered Insights
+            </h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Pattern Recognition -->
+                <div class="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
+                    <h3 class="text-lg font-semibold text-blue-800 mb-4 flex items-center">
+                        <i class="fas fa-search text-blue-600 mr-2"></i>
+                        Pattern Recognition
+                    </h3>
+                    <div class="space-y-3">
+                        {% if stats.avg_cycle_length < 21 %}
+                            <div class="flex items-start">
+                                <i class="fas fa-exclamation-triangle text-yellow-500 mt-1 mr-2"></i>
+                                <div>
+                                    <p class="text-sm font-medium text-blue-800">Short Cycles Detected</p>
+                                    <p class="text-xs text-blue-600">Your cycles are shorter than average. Consider tracking stress levels and lifestyle factors.</p>
+                                </div>
+                            </div>
+                        {% elif stats.avg_cycle_length > 35 %}
+                            <div class="flex items-start">
+                                <i class="fas fa-exclamation-triangle text-yellow-500 mt-1 mr-2"></i>
+                                <div>
+                                    <p class="text-sm font-medium text-blue-800">Long Cycles Detected</p>
+                                    <p class="text-xs text-blue-600">Your cycles are longer than average. This could be normal for you or indicate hormonal changes.</p>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                <div>
+                                    <p class="text-sm font-medium text-blue-800">Regular Cycle Pattern</p>
+                                    <p class="text-xs text-blue-600">Your cycle length is within the normal range. Great consistency!</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if stats.cycle_regularity < 70 %}
+                            <div class="flex items-start">
+                                <i class="fas fa-info-circle text-blue-500 mt-1 mr-2"></i>
+                                <div>
+                                    <p class="text-sm font-medium text-blue-800">Irregularity Detected</p>
+                                    <p class="text-xs text-blue-600">Your cycles show some irregularity. This is common and can be influenced by stress, diet, and lifestyle.</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Health Recommendations -->
+                <div class="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
+                    <h3 class="text-lg font-semibold text-green-800 mb-4 flex items-center">
+                        <i class="fas fa-lightbulb text-green-600 mr-2"></i>
+                        Personalized Recommendations
+                    </h3>
+                    <div class="space-y-3">
+                        {% if stats.avg_cycle_length < 25 %}
+                            <div class="flex items-start">
+                                <i class="fas fa-seedling text-green-500 mt-1 mr-2"></i>
+                                <div>
+                                    <p class="text-sm font-medium text-green-800">Nutrition Focus</p>
+                                    <p class="text-xs text-green-600">Consider iron-rich foods and omega-3 supplements to support shorter cycles.</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if stats.cycle_regularity < 80 %}
+                            <div class="flex items-start">
+                                <i class="fas fa-heart text-green-500 mt-1 mr-2"></i>
+                                <div>
+                                    <p class="text-sm font-medium text-green-800">Stress Management</p>
+                                    <p class="text-xs text-green-600">Practice stress-reduction techniques like meditation or yoga to improve cycle regularity.</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="flex items-start">
+                            <i class="fas fa-dumbbell text-green-500 mt-1 mr-2"></i>
+                            <div>
+                                <p class="text-sm font-medium text-green-800">Exercise Recommendation</p>
+                                <p class="text-xs text-green-600">Moderate exercise 3-4 times per week can help maintain hormonal balance.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-brand-pink-800 mb-4">Cycle Length Trends</h3>
+                <canvas id="cycleLengthChart" width="400" height="200"></canvas>
+                <div class="mt-4 text-center">
+                    <p class="text-sm text-brand-gray-600">
+                        {% if chart_data.cycle_lengths|length > 1 %}
+                            {% set trend = (chart_data.cycle_lengths[-1] - chart_data.cycle_lengths[0]) / (chart_data.cycle_lengths|length - 1) %}
+                            {% if trend > 1 %}
+                                <i class="fas fa-arrow-up text-red-500 mr-1"></i>Trending longer
+                            {% elif trend < -1 %}
+                                <i class="fas fa-arrow-down text-blue-500 mr-1"></i>Trending shorter
+                            {% else %}
+                                <i class="fas fa-minus text-gray-500 mr-1"></i>Stable
+                            {% endif %}
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-brand-pink-800 mb-4">Symptom Frequency</h3>
+                <canvas id="symptomChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Symptom Analysis -->
+        {% if symptom_counts %}
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-brand-pink-800 mb-4">Symptom Analysis</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {% for symptom, count in symptom_counts.items() %}
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <div class="text-2xl font-bold text-brand-pink-600">{{ count }}</div>
+                    <div class="text-sm text-brand-gray-600">{{ symptom }}</div>
+                    <div class="text-xs text-brand-gray-500 mt-1">
+                        {% if count >= 5 %}
+                            <i class="fas fa-exclamation-triangle text-yellow-500"></i> Frequent
+                        {% elif count >= 3 %}
+                            <i class="fas fa-info-circle text-blue-500"></i> Moderate
+                        {% else %}
+                            <i class="fas fa-check-circle text-green-500"></i> Occasional
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Health Score -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-brand-pink-800 mb-4">Menstrual Health Score</h3>
+            <div class="flex items-center space-x-4">
+                <div class="flex-shrink-0">
+                    <div class="relative">
+                        <svg class="w-24 h-24" viewBox="0 0 36 36">
+                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e5e7eb" stroke-width="2"/>
+                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#ec4899" stroke-width="2" stroke-dasharray="{{ (stats.cycle_regularity * 100) / 100 }}, 100"/>
+                        </svg>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <span class="text-xl font-bold text-brand-pink-700">{{ stats.cycle_regularity }}%</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-lg font-medium text-brand-gray-900">Overall Health Score</h4>
+                    <p class="text-sm text-brand-gray-600">
+                        Based on cycle regularity, symptom patterns, and consistency
+                    </p>
+                    <div class="mt-2">
+                        {% if stats.cycle_regularity >= 80 %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <i class="fas fa-star mr-1"></i>Excellent
+                            </span>
+                        {% elif stats.cycle_regularity >= 60 %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                <i class="fas fa-thumbs-up mr-1"></i>Good
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>Needs Attention
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    {% else %}
+        <div class="bg-white rounded-lg shadow-md p-6 text-center py-12">
+            <i class="fas fa-chart-line text-4xl text-brand-gray-400 mb-4"></i>
+            <h3 class="text-lg font-medium text-brand-gray-900 mb-2">No Data Available</h3>
+            <p class="text-brand-gray-600 mb-6">Start logging your cycles to see AI-powered analytics and insights.</p>
+            <a href="{{ url_for('menstrual.log_cycle') }}" class="inline-flex items-center px-6 py-3 bg-brand-pink-600 text-white rounded-md hover:bg-brand-pink-700 transition-colors">
+                <i class="fas fa-plus-circle mr-2"></i> Log Your First Cycle
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Load Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Initialize chart data -->
+<script>
+// Store chart data from template
+window.chartData = {
+    cycleData: {
+        labels: [],
+        data: []
+    },
+    symptomData: {
+        labels: [],
+        data: []
+    }
+};
+
+// Set cycle data if available
+(function() {
+    {% if stats and chart_data %}
+    try {
+        window.chartData.cycleData = {
+            labels: JSON.parse('{{ chart_data.dates | tojson | safe }}'),
+            data: JSON.parse('{{ chart_data.cycle_lengths | tojson | safe }}')
+        };
+    } catch (e) {
+        console.error('Error parsing cycle data:', e);
+    }
+    {% endif %}
+
+    // Set symptom data if available
+    {% if symptom_counts %}
+    try {
+        window.chartData.symptomData = {
+            labels: JSON.parse('{{ symptom_counts.keys() | list | tojson | safe }}'),
+            data: JSON.parse('{{ symptom_counts.values() | list | tojson | safe }}')
+        };
+    } catch (e) {
+        console.error('Error parsing symptom data:', e);
+    }
+    {% endif %}
+})();
+</script>
+
+<!-- Include the external JavaScript file -->
+<script src="{{ url_for('static', filename='js/menstrual_charts.js') }}"></script>
+
+<!-- Refresh function -->
+<script>
+function refreshAnalytics() {
+    // Reload the page to refresh all data
+    window.location.reload();
+}
+</script>
+{% endblock %}

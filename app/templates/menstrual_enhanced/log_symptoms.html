@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen">
+    <div class="max-w-2xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-gray-900">Log Daily Symptoms</h1>
+            <p class="mt-2 text-lg text-gray-600">Record how you're feeling today to track patterns over time</p>
+        </div>
+
+        <!-- Symptom Logging Form -->
+        <div class="bg-white rounded-lg shadow p-8">
+            <form action="{{ url_for('menstrual_enhanced.log_symptoms') }}" method="POST">
+                <div class="space-y-8">
+                    <!-- Date -->
+                    <div>
+                        <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                        <input type="date" id="date" name="date" required value="{{ today_str }}"
+                               class="w-full border-gray-300 rounded-md shadow-sm focus:ring-brand-pink-500 focus:border-brand-pink-500">
+                    </div>
+
+                    <!-- Symptoms -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Symptoms</label>
+                        <div class="grid grid-cols-3 sm:grid-cols-4 gap-4">
+                            {% set symptoms = ['Cramps', 'Bloating', 'Headache', 'Nausea', 'Fatigue', 'Acne', 'Backache', 'Tender Breasts', 'Insomnia', 'Food Cravings', 'Dizziness', 'Constipation'] %}
+                            {% for symptom in symptoms %}
+                            <label class="flex flex-col items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                                <input type="checkbox" name="symptoms" value="{{ symptom }}" class="hidden peer">
+                                <div class="w-12 h-12 flex items-center justify-center bg-gray-100 rounded-full text-2xl peer-checked:bg-brand-red-100 peer-checked:text-brand-red-600 transition-colors">
+                                    <!-- Replace with icons later -->
+                                    <span>&#128567;</span>
+                                </div>
+                                <span class="mt-2 text-sm text-center text-gray-700">{{ symptom }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Mood -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Mood</label>
+                        <div class="grid grid-cols-5 gap-4">
+                            {% set moods = {'Happy': '&#128512;', 'Sad': '&#128546;', 'Anxious': '&#128534;', 'Irritable': '&#128545;', 'Calm': '&#128524;'} %}
+                            {% for name, emoji in moods.items() %}
+                            <label class="flex flex-col items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                                <input type="radio" name="mood" value="{{ name }}" class="hidden peer">
+                                <div class="w-16 h-16 flex items-center justify-center bg-gray-100 rounded-full text-4xl peer-checked:bg-brand-pink-100 peer-checked:text-brand-pink-600 transition-colors">
+                                    {{ emoji|safe }}
+                                </div>
+                                <span class="mt-2 text-sm text-center text-gray-700">{{ name }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Pain Level -->
+                    <div>
+                        <label for="pain_level" class="block text-sm font-medium text-gray-700 mb-2">Pain Level</label>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-500">None</span>
+                            <input type="range" id="pain_level" name="pain_level" min="0" max="10" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-red-500">
+                            <span class="text-sm text-gray-500">Severe</span>
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div>
+                        <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                        <textarea id="notes" name="notes" rows="4" 
+                                  class="w-full border-gray-300 rounded-md shadow-sm focus:ring-brand-pink-500 focus:border-brand-pink-500"
+                                  placeholder="Any other symptoms or details..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="mt-8 flex justify-end space-x-3">
+                    <a href="{{ url_for('menstrual.tracker') }}" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-6 py-2 bg-brand-pink-600 text-white rounded-md hover:bg-brand-pink-700">
+                        Save Log
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

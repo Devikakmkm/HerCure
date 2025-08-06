@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<!-- FullCalendar CSS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet" />
+<style>
+    /* Custom FullCalendar styles */
+    .fc .fc-daygrid-day.fc-day-today {
+        background-color: rgba(236, 72, 153, 0.1);
+    }
+    .fc .fc-daygrid-day-number {
+        color: #374151;
+    }
+    .fc-event {
+        border: none !important;
+    }
+    .fc-event-main {
+        padding: 4px 8px;
+    }
+    .fc-period-event {
+        background-color: #EC4899; /* brand-pink-500 */
+        color: white;
+    }
+    .fc-fertile-event {
+        background-color: #F472B6; /* brand-pink-400 */
+        color: white;
+    }
+    .fc-ovulation-event {
+        background-color: #F9A8D4; /* brand-pink-300 */
+        color: white;
+        border: 2px solid #EC4899 !important;
+    }
+    .fc-symptom-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-left: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Cycle Calendar</h1>
+                    <p class="mt-2 text-lg text-gray-600">Visualize your menstrual cycle, predictions, and logged symptoms</p>
+                </div>
+                <div class="flex space-x-2">
+                    <a href="{{ url_for('menstrual_enhanced.log_cycle') }}" class="bg-brand-pink-600 hover:bg-brand-pink-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Log Cycle
+                    </a>
+                    <a href="{{ url_for('menstrual_enhanced.log_symptoms') }}" class="bg-brand-red-600 hover:bg-brand-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-notes-medical mr-2"></i>Log Symptoms
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar and Legend -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div class="lg:col-span-3">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Calendar Legend</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-brand-pink-500 mr-3"></div>
+                            <span class="text-gray-700">Period</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-brand-pink-400 mr-3"></div>
+                            <span class="text-gray-700">Fertile Window</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-brand-pink-300 border-2 border-brand-pink-500 mr-3"></div>
+                            <span class="text-gray-700">Predicted Ovulation</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-yellow-400 mr-3"></div>
+                            <span class="text-gray-700">Logged Symptoms</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full bg-purple-400 mr-3"></div>
+                            <span class="text-gray-700">Logged Mood</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6 mt-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Cycle Summary</h3>
+                    <div class="space-y-2 text-sm text-gray-600">
+                        <div class="flex justify-between">
+                            <span>Average Cycle Length:</span>
+                            <span class="font-medium text-gray-900">{{ cycle_summary.avg_cycle_length or 'N/A' }} days</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Average Period Length:</span>
+                            <span class="font-medium text-gray-900">{{ cycle_summary.avg_period_length or 'N/A' }} days</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Cycle Regularity:</span>
+                            <span class="font-medium text-gray-900">{{ cycle_summary.regularity or 'N/A' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- FullCalendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,listWeek'
+            },
+            editable: true,
+            events: [
+                // Example data - this will be replaced by data from the backend
+                {
+                    title: 'Period',
+                    start: '2025-07-01',
+                    end: '2025-07-05',
+                    className: 'fc-period-event'
+                },
+                {
+                    title: 'Fertile Window',
+                    start: '2025-07-10',
+                    end: '2025-07-16',
+                    display: 'background',
+                    color: 'rgba(244, 114, 182, 0.3)' // brand-pink-400 with opacity
+                },
+                {
+                    title: 'Ovulation',
+                    start: '2025-07-15',
+                    className: 'fc-ovulation-event'
+                },
+                {
+                    title: 'Predicted Period',
+                    start: '2025-07-29',
+                    end: '2025-08-02',
+                    className: 'fc-period-event',
+                    allDay: true,
+                    rendering: 'background',
+                    color: 'rgba(236, 72, 153, 0.5)'
+                },
+                // Example symptom log
+                {
+                    title: 'Cramps, Headache',
+                    start: '2025-07-01',
+                    allDay: true,
+                    color: '#FBBF24' // yellow-400
+                }
+            ],
+            // Fetch events from backend
+            // events: '{{ url_for("menstrual_enhanced.get_calendar_events") }}',
+
+            eventDidMount: function(info) {
+                // You can add custom rendering here, like adding dots for symptoms
+            },
+
+            dateClick: function(info) {
+                // Handle date click, e.g., open a modal to log symptoms for that day
+                window.location.href = `{{ url_for('menstrual_enhanced.log_symptoms') }}?date=${info.dateStr}`;
+            }
+        });
+        calendar.render();
+    });
+</script>
+{% endblock %}

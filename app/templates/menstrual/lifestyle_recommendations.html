@@ -1,0 +1,313 @@
+{% extends "menstrual/base_menstrual.html" %}
+
+{% block title %}Lifestyle Recommendations - HerCure{% endblock %}
+
+{% block menstrual_content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-brand-pink-700 flex items-center">
+                    <i class="fas fa-seedling text-brand-pink-600 mr-3"></i>
+                    Lifestyle Recommendations
+                </h1>
+                <p class="text-brand-gray-600 mt-1">Personalized wellness advice based on your cycle phase</p>
+            </div>
+            <div class="flex space-x-2">
+                <button onclick="refreshRecommendations()" class="px-4 py-2 bg-brand-pink-600 text-white rounded-md hover:bg-brand-pink-700 transition-colors">
+                    <i class="fas fa-sync-alt mr-2"></i>Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Phase Indicator -->
+    <div class="bg-gradient-to-r from-brand-pink-50 to-brand-teal-50 rounded-lg p-6 border border-brand-pink-200">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-xl font-semibold text-brand-pink-800">Current Cycle Phase</h2>
+                <p class="text-brand-gray-600 mt-1">Based on your cycle data</p>
+            </div>
+            <div class="text-right">
+                <div class="text-3xl font-bold text-brand-pink-600">{{ current_phase }}</div>
+                <div class="text-sm text-brand-gray-500">Phase</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommendations Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Diet & Nutrition -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center mb-4">
+                <i class="fas fa-utensils text-2xl text-green-600 mr-3"></i>
+                <h3 class="text-lg font-semibold text-gray-900">Diet & Nutrition</h3>
+            </div>
+            
+            <div class="space-y-4">
+                {% for recommendation in recommendations.diet %}
+                <div class="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
+                    <i class="{{ recommendation.icon }} text-green-600 mt-1"></i>
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">{{ recommendation.recommendation }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Nutrition Tips -->
+            <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                <h4 class="text-sm font-semibold text-blue-800 mb-2">Nutrition Tips for {{ current_phase }}</h4>
+                <ul class="text-xs text-blue-700 space-y-1">
+                    {% if current_phase == 'Menstrual' %}
+                        <li>• Focus on iron-rich foods like spinach and lean meats</li>
+                        <li>• Stay hydrated with water and herbal teas</li>
+                        <li>• Include omega-3 rich foods like salmon and walnuts</li>
+                    {% elif current_phase == 'Follicular' %}
+                        <li>• Increase protein intake for energy</li>
+                        <li>• Add complex carbohydrates for sustained energy</li>
+                        <li>• Include vitamin B-rich foods</li>
+                    {% elif current_phase == 'Ovulatory' %}
+                        <li>• Focus on antioxidant-rich foods</li>
+                        <li>• Include healthy fats for hormone production</li>
+                        <li>• Stay well-hydrated</li>
+                    {% elif current_phase == 'Luteal' %}
+                        <li>• Include magnesium-rich foods</li>
+                        <li>• Focus on complex carbs to stabilize mood</li>
+                        <li>• Limit caffeine and alcohol</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Exercise & Movement -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center mb-4">
+                <i class="fas fa-dumbbell text-2xl text-blue-600 mr-3"></i>
+                <h3 class="text-lg font-semibold text-gray-900">Exercise & Movement</h3>
+            </div>
+            
+            <div class="space-y-4">
+                {% for recommendation in recommendations.exercise %}
+                <div class="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
+                    <i class="{{ recommendation.icon }} text-blue-600 mt-1"></i>
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">{{ recommendation.recommendation }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Exercise Tips -->
+            <div class="mt-6 p-4 bg-purple-50 rounded-lg">
+                <h4 class="text-sm font-semibold text-purple-800 mb-2">Exercise Tips for {{ current_phase }}</h4>
+                <ul class="text-xs text-purple-700 space-y-1">
+                    {% if current_phase == 'Menstrual' %}
+                        <li>• Gentle yoga or stretching</li>
+                        <li>• Light walking or swimming</li>
+                        <li>• Listen to your body and rest when needed</li>
+                    {% elif current_phase == 'Follicular' %}
+                        <li>• High-intensity workouts</li>
+                        <li>• Strength training</li>
+                        <li>• Cardio activities</li>
+                    {% elif current_phase == 'Ovulatory' %}
+                        <li>• Peak performance workouts</li>
+                        <li>• Team sports or group classes</li>
+                        <li>• Outdoor activities</li>
+                    {% elif current_phase == 'Luteal' %}
+                        <li>• Moderate intensity workouts</li>
+                        <li>• Pilates or barre</li>
+                        <li>• Mind-body exercises</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Wellness & Self-Care -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center mb-4">
+                <i class="fas fa-spa text-2xl text-purple-600 mr-3"></i>
+                <h3 class="text-lg font-semibold text-gray-900">Wellness & Self-Care</h3>
+            </div>
+            
+            <div class="space-y-4">
+                {% for recommendation in recommendations.wellness %}
+                <div class="flex items-start space-x-3 p-3 bg-purple-50 rounded-lg">
+                    <i class="{{ recommendation.icon }} text-purple-600 mt-1"></i>
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">{{ recommendation.recommendation }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Wellness Tips -->
+            <div class="mt-6 p-4 bg-pink-50 rounded-lg">
+                <h4 class="text-sm font-semibold text-pink-800 mb-2">Wellness Tips for {{ current_phase }}</h4>
+                <ul class="text-xs text-pink-700 space-y-1">
+                    {% if current_phase == 'Menstrual' %}
+                        <li>• Prioritize rest and sleep</li>
+                        <li>• Practice gentle self-care</li>
+                        <li>• Use heat therapy for cramps</li>
+                    {% elif current_phase == 'Follicular' %}
+                        <li>• Set new goals and intentions</li>
+                        <li>• Try new activities or hobbies</li>
+                        <li>• Socialize and connect with others</li>
+                    {% elif current_phase == 'Ovulatory' %}
+                        <li>• Express creativity</li>
+                        <li>• Engage in social activities</li>
+                        <li>• Practice confidence-building</li>
+                    {% elif current_phase == 'Luteal' %}
+                        <li>• Practice stress management</li>
+                        <li>• Journal your thoughts and feelings</li>
+                        <li>• Create a calming environment</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supplements & Vitamins -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <i class="fas fa-pills text-2xl text-orange-600 mr-3"></i>
+            Supplements & Vitamins
+        </h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                <div class="flex items-center mb-2">
+                    <i class="fas fa-vitamin text-orange-600 mr-2"></i>
+                    <h4 class="font-medium text-orange-800">Iron</h4>
+                </div>
+                <p class="text-xs text-orange-700">Especially important during menstruation to prevent anemia</p>
+            </div>
+            
+            <div class="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                <div class="flex items-center mb-2">
+                    <i class="fas fa-vitamin text-orange-600 mr-2"></i>
+                    <h4 class="font-medium text-orange-800">Magnesium</h4>
+                </div>
+                <p class="text-xs text-orange-700">Helps with cramps and mood regulation</p>
+            </div>
+            
+            <div class="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                <div class="flex items-center mb-2">
+                    <i class="fas fa-vitamin text-orange-600 mr-2"></i>
+                    <h4 class="font-medium text-orange-800">Omega-3</h4>
+                </div>
+                <p class="text-xs text-orange-700">Supports hormonal balance and reduces inflammation</p>
+            </div>
+            
+            <div class="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                <div class="flex items-center mb-2">
+                    <i class="fas fa-vitamin text-orange-600 mr-2"></i>
+                    <h4 class="font-medium text-orange-800">Vitamin D</h4>
+                </div>
+                <p class="text-xs text-orange-700">Important for overall health and mood</p>
+            </div>
+        </div>
+        
+        <div class="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+            <div class="flex items-start">
+                <i class="fas fa-exclamation-triangle text-yellow-600 mt-1 mr-2"></i>
+                <div>
+                    <p class="text-sm font-medium text-yellow-800">Important Note</p>
+                    <p class="text-xs text-yellow-700">Always consult with your healthcare provider before starting any new supplements, especially if you have underlying health conditions or are taking medications.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sleep & Recovery -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <i class="fas fa-bed text-2xl text-indigo-600 mr-3"></i>
+            Sleep & Recovery
+        </h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-medium text-gray-900 mb-3">Sleep Recommendations</h4>
+                <div class="space-y-3">
+                    <div class="flex items-start space-x-3">
+                        <i class="fas fa-clock text-indigo-600 mt-1"></i>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">Aim for 7-9 hours</p>
+                            <p class="text-xs text-gray-600">Consistent sleep schedule is key</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start space-x-3">
+                        <i class="fas fa-moon text-indigo-600 mt-1"></i>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">Create a bedtime routine</p>
+                            <p class="text-xs text-gray-600">Avoid screens 1 hour before bed</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start space-x-3">
+                        <i class="fas fa-thermometer-half text-indigo-600 mt-1"></i>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">Keep room cool</p>
+                            <p class="text-xs text-gray-600">Optimal temperature: 65-68°F</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <h4 class="font-medium text-gray-900 mb-3">Recovery Tips</h4>
+                <div class="space-y-3">
+                    <div class="flex items-start space-x-3">
+                        <i class="fas fa-heart text-indigo-600 mt-1"></i>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">Listen to your body</p>
+                            <p class="text-xs text-gray-600">Rest when you need it</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start space-x-3">
+                        <i class="fas fa-water text-indigo-600 mt-1"></i>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">Stay hydrated</p>
+                            <p class="text-xs text-gray-600">Drink water throughout the day</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start space-x-3">
+                        <i class="fas fa-leaf text-indigo-600 mt-1"></i>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">Practice mindfulness</p>
+                            <p class="text-xs text-gray-600">Meditation or deep breathing</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function refreshRecommendations() {
+    location.reload();
+}
+
+// Add some interactive features
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to recommendation cards
+    const cards = document.querySelectorAll('.bg-white.rounded-lg.shadow-md');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.transition = 'transform 0.2s ease';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+{% endblock %} 

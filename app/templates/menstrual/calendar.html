@@ -1,0 +1,372 @@
+{% extends "menstrual/base_menstrual.html" %}
+
+{% block title %}Menstrual Calendar - HerCure{% endblock %}
+
+{% block menstrual_content %}
+<div class="bg-white rounded-lg shadow-md p-6">
+    <!-- Calendar Header -->
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+        <div class="flex items-center mb-4 md:mb-0">
+            <h1 class="text-2xl font-bold text-brand-pink-700">Menstrual Calendar</h1>
+            <div class="ml-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+                <div class="flex items-center"><span class="w-4 h-4 rounded-full bg-brand-pink-300 mr-2"></span><span class="text-sm text-gray-600">Menstrual</span></div>
+                <div class="flex items-center"><span class="w-4 h-4 rounded-full bg-blue-200 mr-2"></span><span class="text-sm text-gray-600">Follicular</span></div>
+                <div class="flex items-center"><span class="w-4 h-4 rounded-full bg-red-300 mr-2"></span><span class="text-sm text-gray-600">Ovulatory</span></div>
+                <div class="flex items-center"><span class="w-4 h-4 rounded-full bg-yellow-200 mr-2"></span><span class="text-sm text-gray-600">Luteal</span></div>
+            </div>
+        </div>
+        
+        <!-- Month Navigation -->
+        <div class="flex items-center space-x-4">
+            <a href="{{ url_for('menstrual.cycle_calendar', year=calendar.prev_month.year, month=calendar.prev_month.month) }}" 
+               class="p-2 rounded-full hover:bg-gray-100">
+                <i class="fas fa-chevron-left text-brand-pink-600"></i>
+            </a>
+            <h2 class="text-xl font-semibold text-gray-800">{{ calendar.month_name }} {{ calendar.year }}</h2>
+            <a href="{{ url_for('menstrual.cycle_calendar', year=calendar.next_month.year, month=calendar.next_month.month) }}" 
+               class="p-2 rounded-full hover:bg-gray-100">
+                <i class="fas fa-chevron-right text-brand-pink-600"></i>
+            </a>
+            <a href="{{ url_for('menstrual.cycle_calendar') }}" 
+               class="ml-2 px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
+                Today
+            </a>
+        </div>
+    </div>
+    
+    <!-- Days of Week -->
+    <div class="grid grid-cols-7 gap-1 mb-1">
+        {% for day in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] %}
+            <div class="text-center font-medium text-gray-500 text-sm py-2">{{ day }}</div>
+        {% endfor %}
+    </div>
+    
+    <!-- Calendar Grid -->
+    <div class="grid grid-cols-7 gap-1">
+        {% for day in calendar.days %}
+            <div class="relative min-h-24 border rounded-md p-2 {% if day.is_today %}border-2 border-brand-pink-500{% else %}border-gray-200{% endif %} 
+                        {% if day.date and day.date.month != calendar.month %}bg-gray-50{% endif %}">
+                {% if day.date %}
+                    <div class="flex justify-between items-start">
+                        <span class="text-sm font-medium {% if day.date.month != calendar.month %}text-gray-400{% else %}text-gray-700{% endif %}">
+                            {{ day.day }}
+                        </span>
+                        {% if day.date == calendar.today %}
+                            <span class="text-xs bg-brand-pink-600 text-white rounded-full w-5 h-5 flex items-center justify-center">
+                                {{ day.day }}
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Cycle Phase Indicator -->
+                    {% if day.cycle and (day.cycle.is_period or day.cycle.predicted_phase) %}
+                        <div class="h-full w-full absolute top-0 left-0 opacity-20 -z-10
+                            {% if day.cycle.is_period %}bg-brand-pink-300
+                            {% elif day.cycle.predicted_phase == 'Menstrual' %}bg-brand-pink-300
+                            {% elif day.cycle.predicted_phase == 'Follicular' %}bg-blue-200
+                            {% elif day.cycle.predicted_phase == 'Ovulatory' %}bg-red-300
+                            {% elif day.cycle.predicted_phase == 'Luteal' %}bg-yellow-200
+                            {% endif %}"></div>
+                        
+                        <div class="mt-1 text-center">
+                            <span class="text-xs font-semibold 
+                                {% if day.cycle.is_period %}text-brand-pink-800
+                                {% elif day.cycle.predicted_phase == 'Menstrual' %}text-brand-pink-800
+                                {% elif day.cycle.predicted_phase == 'Follicular' %}text-blue-800
+                                {% elif day.cycle.predicted_phase == 'Ovulatory' %}text-red-800
+                                {% elif day.cycle.predicted_phase == 'Luteal' %}text-yellow-800
+                                {% endif %}">
+                                {% if day.cycle.is_period %}Period
+                                {% else %}{{ day.cycle.predicted_phase }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Fertile Window Indicator -->
+                    {% if fertile_start and ovulation_day and fertile_start <= day.date <= ovulation_day %}
+                        <div class="h-1 w-full bg-brand-pink-100 rounded-full mt-1"></div>
+                    {% endif %}
+                    
+                    <!-- Ovulation Day -->
+                    {% if ovulation_day and day.date == ovulation_day.date() %}
+                        <div class="h-1 w-full bg-brand-red-100 rounded-full mt-1"></div>
+                        <div class="text-xs text-center text-brand-red-600 font-medium mt-1">Ovulation</div>
+                    {% endif %}
+                    
+                    <!-- Symptoms -->
+                    {% if day.symptoms %}
+                        <div class="mt-1 flex flex-wrap gap-1">
+                            {% for symptom in day.symptoms %}
+                                <span class="text-xs px-1 rounded bg-purple-100 text-purple-800">
+                                    {{ symptom.symptom|replace('_', ' ')|title }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Log Entry Modal -->
+<div id="logModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Log Entry</h3>
+                <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="logForm" method="POST" action="{{ url_for('menstrual.log_cycle') }}">
+                {{ form.hidden_tag() }}  <!-- CSRF Token -->
+                <input type="hidden" name="start_date" id="logDate">
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Period Status</label>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <input type="radio" name="period_status" value="start" id="period_start" class="form-radio text-brand-pink-600">
+                            <label for="period_start" class="ml-2 text-sm text-gray-700">Start of Period</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" name="period_status" value="end" id="period_end" class="form-radio text-brand-pink-600">
+                            <label for="period_end" class="ml-2 text-sm text-gray-700">End of Period</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" name="period_status" value="none" id="period_none" class="form-radio text-brand-pink-600" checked>
+                            <label for="period_none" class="ml-2 text-sm text-gray-700">No Period</label>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                
+                <div id="periodDetails" class="hidden">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Flow</label>
+                        <select name="flow_intensity" class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-pink-300 focus:ring focus:ring-brand-pink-200 focus:ring-opacity-50">
+                            <option value="light">Light</option>
+                            <option value="moderate" selected>Moderate</option>
+                            <option value="heavy">Heavy</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Pain Level</label>
+                        <select name="pain_level" class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-pink-300 focus:ring focus:ring-brand-pink-200 focus:ring-opacity-50">
+                            <option value="none">None</option>
+                            <option value="mild">Mild</option>
+                            <option value="moderate">Moderate</option>
+                            <option value="severe">Severe</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Mood</label>
+                    <div class="flex flex-wrap gap-2">
+                        {% for mood in ['happy', 'sad', 'energetic', 'tired', 'stressed', 'anxious', 'irritable', 'calm'] %}
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="mood" value="{{ mood }}" class="hidden peer" {% if loop.first %}checked{% endif %}>
+                                <span class="px-3 py-1 rounded-full text-sm cursor-pointer bg-gray-100 text-gray-700 peer-checked:bg-brand-pink-100 peer-checked:text-brand-pink-800">
+                                    {{ mood|title }}
+                                </span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Symptoms</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        {% for symptom in CycleSymptom.COMMON_SYMPTOMS %}
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="symptoms" value="{{ symptom }}" class="form-checkbox text-brand-pink-600">
+                                <span class="ml-2 text-sm">{{ symptom|replace('_', ' ')|title }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                    <textarea name="notes" id="notes" rows="2" class="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-pink-300 focus:ring focus:ring-brand-pink-200 focus:ring-opacity-50"></textarea>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-brand-pink-600 border border-transparent rounded-md hover:bg-brand-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-pink-500">
+                        Save Entry
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+{{ super() }}
+<script>
+// Show log modal with the selected date
+function showLogModal(dateString) {
+    const modal = document.getElementById('logModal');
+    const dateInput = document.getElementById('logDate');
+    const date = new Date(dateString);
+    const formattedDate = date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+    
+    // Update modal title with the selected date
+    document.querySelector('#logModal h3').textContent = `Log Entry - ${formattedDate}`;
+    
+    // Set the date in the form
+    dateInput.value = dateString;
+    
+    // Reset form state
+    const form = document.getElementById('logForm');
+    form.reset();
+    
+    // Show the modal
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    
+    // Initialize any date pickers or other form elements
+    initializeFormElements();
+}
+
+// Initialize form elements like date pickers
+function initializeFormElements() {
+    // Initialize any date pickers here if needed
+    const flowIntensity = document.getElementById('flow_intensity');
+    if (flowIntensity) {
+        flowIntensity.value = 'moderate'; // Default value
+    }
+    
+    const painLevel = document.getElementById('pain_level');
+    if (painLevel) {
+        painLevel.value = 'none'; // Default value
+    }
+    
+    const mood = document.getElementById('mood');
+    if (mood) {
+        mood.value = 'normal'; // Default value
+    }
+}
+
+// Close the modal
+function closeModal() {
+    document.getElementById('logModal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+// Handle form submission
+function handleLogSubmit(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    // Disable submit button to prevent double submission
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    
+    // Submit form via fetch API
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            showToast('Cycle logged successfully!', 'success');
+            // Close modal
+            closeModal();
+            // Reload the page to show updated data
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            throw new Error(data.message || 'Failed to log cycle');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast(error.message || 'An error occurred. Please try again.', 'error');
+    })
+    .finally(() => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Save';
+    });
+}
+
+// Show toast notification
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-md text-white ${
+        type === 'error' ? 'bg-red-500' : 'bg-green-500'
+    }`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    // Remove toast after 3 seconds
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+// Toggle period details based on selection
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize period status toggle
+    const periodRadios = document.querySelectorAll('input[name="period_status"]');
+    const periodDetails = document.getElementById('periodDetails');
+    
+    function togglePeriodDetails() {
+        if (periodDetails) {
+            periodDetails.style.display = this.value === 'start' ? 'block' : 'none';
+        }
+    }
+    
+    if (periodRadios.length > 0) {
+        periodRadios.forEach(radio => {
+            radio.addEventListener('change', togglePeriodDetails);
+        });
+        
+        // Initialize the view
+        const checkedRadio = document.querySelector('input[name="period_status"]:checked');
+        if (checkedRadio) {
+            checkedRadio.dispatchEvent(new Event('change'));
+        }
+    }
+    
+    // Initialize form submission
+    const logForm = document.getElementById('logForm');
+    if (logForm) {
+        logForm.addEventListener('submit', handleLogSubmit);
+    }
+    
+    // Close modal when clicking outside
+    const modal = document.getElementById('logModal');
+    window.onclick = function(event) {
+        if (event.target === modal) {
+            closeModal();
+        }
+    };
+});
+</script>
+{% endblock %}

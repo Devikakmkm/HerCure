@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div class="text-left mb-12">
+            <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                Welcome, {{ current_user.name }}!
+            </h2>
+            <p class="mt-4 text-lg text-brand-gray">
+                Here's a summary of your health and wellness journey.
+            </p>
+        </div>
+
+       
+
+
+        <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <!-- Reminders & Alerts Card -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-2 transition-transform duration-300">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-brand-red-500 rounded-md p-3">
+                            <i class="fas fa-bell text-white text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-medium text-gray-900">Reminders & Alerts</h3>
+                        </div>
+                    </div>
+                    <p class="mt-4 text-sm text-brand-gray-600">View and manage your upcoming reminders and health alerts.</p>
+                    <a href="#reminders-section" class="mt-6 block text-center w-full bg-brand-red-50 text-brand-red-600 font-semibold py-2 px-4 rounded-lg hover:bg-brand-red-100 hover:text-brand-red-700 transition-colors duration-300">Manage Reminders</a>
+                </div>
+            </div>
+            <!-- Menstrual Tracking Card -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-2 transition-transform duration-300">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-brand-pink-500 rounded-md p-3">
+                            <i class="fas fa-calendar-alt text-white text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-medium text-gray-900">Menstrual Tracking</h3>
+                        </div>
+                    </div>
+                    <p class="mt-4 text-sm text-brand-gray-600">Track your menstrual cycle, symptoms, and get personalized insights.</p>
+                    <a href="{{ url_for('menstrual.tracker') }}" class="mt-6 block text-center w-full bg-brand-pink-50 text-brand-pink-600 font-semibold py-2 px-4 rounded-lg hover:bg-brand-pink-100 hover:text-brand-pink-700 transition-colors duration-300">Track Cycle</a>
+                </div>
+            </div>
+
+               
+           
+            <!-- Medical Services Card -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-2 transition-transform duration-300">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
+                            <i class="fas fa-hospital text-white text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-medium text-gray-900">Medical Services</h3>
+                        </div>
+                    </div>
+                    <p class="mt-4 text-sm text-brand-gray-600">Find nearby hospitals, clinics, and healthcare providers.</p>
+                    <a href="{{ url_for('nearby.nearby_medical_facilities') }}" class="mt-6 block text-center w-full bg-blue-50 text-blue-600 font-semibold py-2 px-4 rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-colors duration-300">Find Nearby</a>
+                </div>
+            </div>
+
+            <!-- Shopping Card -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-2 transition-transform duration-300">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-amber-500 rounded-md p-3">
+                            <i class="fas fa-shopping-bag text-white text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-medium text-gray-900">Health Shop</h3>
+                        </div>
+                    </div>
+                    <p class="mt-4 text-sm text-brand-gray-600">Discover health and wellness products tailored for you.</p>
+                    <a href="{{ url_for('shop.get_products') }}" class="mt-6 block text-center w-full bg-amber-50 text-amber-600 font-semibold py-2 px-4 rounded-lg hover:bg-amber-100 hover:text-amber-700 transition-colors duration-300">Shop Now</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reminders Section -->
+        <div id="reminders-section" class="mt-16">
+            <h3 class="text-2xl font-bold text-gray-900 mb-6">Upcoming Reminders</h3>
+                        <div id="reminders-list" class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                <!-- Dynamic content will be loaded here -->
+                <p class="text-brand-gray">Loading reminders...</p>
+            </div>
+
+            <h4 class="text-xl font-bold text-gray-800 mb-4">Add New Reminder</h4>
+            <form id="add-reminder-form" class="bg-white rounded-lg shadow-lg p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="reminder-title" class="block text-sm font-medium text-gray-700">Title</label>
+                        <input type="text" id="reminder-title" name="title" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-pink focus:border-brand-pink sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="reminder-date" class="block text-sm font-medium text-gray-700">Date and Time</label>
+                        <input type="datetime-local" id="reminder-date" name="scheduled_date" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-pink focus:border-brand-pink sm:text-sm">
+                    </div>
+                </div>
+                <div class="mt-6 text-right">
+                    <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-pink-500 hover:bg-brand-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-pink-500">
+                        Add Reminder
+                    </button>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const remindersList = document.getElementById('reminders-list');
+        const addReminderForm = document.getElementById('add-reminder-form');
+
+        // Fetch and render reminders on page load
+        async function fetchAndRenderReminders() {
+            try {
+                const response = await fetch('/api/reminders');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch reminders');
+                }
+                const reminders = await response.json();
+                renderReminders(reminders);
+            } catch (error) {
+                remindersList.innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
+            }
+        }
+
+        // Render the list of reminders
+        function renderReminders(reminders) {
+            if (reminders.length === 0) {
+                remindersList.innerHTML = '<p class="text-brand-gray">No upcoming reminders.</p>';
+                return;
+            }
+
+            remindersList.innerHTML = reminders.map(reminder => `
+                <div class="reminder-item flex justify-between items-center p-4 border-b border-gray-200">
+                    <div>
+                        <p class="font-semibold text-gray-800">${reminder.title}</p>
+                        <p class="text-sm text-brand-gray-600">${new Date(reminder.scheduled_date).toLocaleString()}</p>
+                    </div>
+                    <button class="delete-reminder-btn text-red-500 hover:text-red-700" data-id="${reminder.id}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Handle form submission for new reminders
+        addReminderForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const title = document.getElementById('reminder-title').value;
+            const scheduledDate = document.getElementById('reminder-date').value;
+
+            try {
+                const response = await fetch('/api/reminders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ title, scheduled_date: scheduledDate }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to create reminder');
+                }
+
+                addReminderForm.reset();
+                fetchAndRenderReminders(); // Refresh the list
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        });
+
+        // Handle reminder deletion
+        remindersList.addEventListener('click', async function(event) {
+            if (event.target.closest('.delete-reminder-btn')) {
+                const button = event.target.closest('.delete-reminder-btn');
+                const reminderId = button.dataset.id;
+                
+                if (confirm('Are you sure you want to delete this reminder?')) {
+                    try {
+                        const response = await fetch(`/api/reminders/${reminderId}`, {
+                            method: 'DELETE',
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Failed to delete reminder');
+                        }
+
+                        fetchAndRenderReminders(); // Refresh the list
+                    } catch (error) {
+                        alert(`Error: ${error.message}`);
+                    }
+                }
+            }
+        });
+
+        // Initial load
+        fetchAndRenderReminders();
+    });
+</script>
+{% endblock %}

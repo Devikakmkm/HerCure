@@ -1,0 +1,148 @@
+{% extends "menstrual/base_menstrual.html" %}
+
+{% block title %}Menstrual Tracker Dashboard - HerCure{% endblock %}
+
+{% block menstrual_content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-brand-pink-800">Menstrual Tracker</h1>
+        <p class="text-brand-gray-600">Track and manage your menstrual cycle</p>
+    </div>
+    
+<!-- Current Status -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Current Cycle -->
+        <div class="bg-brand-pink-50 rounded-lg p-4 border border-brand-pink-100">
+            <h3 class="font-semibold text-brand-pink-800 mb-2">Current Cycle</h3>
+            {% if current_cycle %}
+                <p class="text-2xl font-bold text-brand-pink-600">
+                    Day {{ (now - current_cycle.start_date).days + 1 }}
+                </p>
+                <p class="text-sm text-brand-gray-600">
+                    Started {{ current_cycle.start_date.strftime('%b %d, %Y') }}
+                </p>
+                {% if current_cycle.end_date %}
+                    <p class="text-sm text-brand-gray-600">
+                        Ended {{ current_cycle.end_date.strftime('%b %d, %Y') }}
+                    </p>
+                {% else %}
+                    <p class="text-sm text-brand-green-600 font-medium">
+                        Currently on period
+                    </p>
+                {% endif %}
+            {% else %}
+                <p class="text-brand-gray-600">No active cycle</p>
+                <a href="{{ url_for('menstrual.log_cycle') }}" class="text-brand-pink-600 hover:underline text-sm mt-2 inline-block">
+                    Start tracking your cycle
+                </a>
+            {% endif %}
+        </div>
+        
+        <!-- Next Period -->
+        <div class="bg-white rounded-lg p-4 border border-brand-pink-100">
+            <h3 class="font-semibold text-brand-pink-800 mb-2">Next Period</h3>
+            {% if next_period %}
+                <p class="text-2xl font-bold text-brand-pink-600">
+                    {{ next_period.strftime('%b %d') }}
+                </p>
+                <p class="text-sm text-brand-gray-600">
+                    In {{ (next_period - now).days }} days
+                </p>
+                <p class="text-xs text-brand-gray-500 mt-1">
+                    (Estimated)
+                </p>
+            {% else %}
+                <p class="text-brand-gray-600">Not enough data</p>
+                <p class="text-xs text-brand-gray-500 mt-1">
+                    Log a few cycles for predictions
+                </p>
+            {% endif %}
+        </div>
+        
+        <!-- Fertile Window -->
+        <div class="bg-white rounded-lg p-4 border border-brand-pink-100">
+            <h3 class="font-semibold text-brand-pink-800 mb-2">Fertile Window</h3>
+            {% if fertile_start and ovulation_day %}
+                <p class="text-sm text-brand-gray-600">
+                    {{ fertile_start.strftime('%b %d') }} - {{ ovulation_day.strftime('%b %d') }}
+                </p>
+                {% if now >= fertile_start and now <= ovulation_day %}
+                    <p class="text-sm font-medium text-brand-pink-600 mt-1">
+                        You're in your fertile window
+                    </p>
+                {% else %}
+                    <p class="text-xs text-brand-gray-500 mt-1">
+                        Next window starts in {{ (fertile_start - now).days }} days
+                    </p>
+                {% endif %}
+            {% else %}
+                <p class="text-brand-gray-600">Not enough data</p>
+                <p class="text-xs text-brand-gray-500 mt-1">
+                    Log a few cycles for predictions
+                </p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Cycle Tracking Actions -->
+    <div class="bg-white rounded-lg p-6 mb-8 shadow-sm border border-brand-pink-100">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h2 class="text-xl font-semibold text-brand-pink-800">Your Wellness Plan</h2>
+                <p class="text-brand-gray-600">Personalized health recommendations based on your profile</p>
+            </div>
+            <a href="{{ url_for('menstrual.wellness_quiz') }}" 
+               class="inline-flex items-center px-4 py-2 bg-brand-pink-600 text-white rounded-md hover:bg-brand-pink-700 transition-colors">
+                <i class="fas fa-heartbeat mr-2"></i> Take the Wellness Quiz
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Initialize cycle chart if element exists
+const cycleChartEl = document.getElementById('cycleChart');
+if (cycleChartEl) {
+    const ctx = cycleChartEl.getContext('2d');
+    const cycleChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Array.from({length: 28}, (_, i) => i + 1),
+            datasets: [{
+                label: 'Cycle Pattern',
+                data: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 3.5, 3, 2.5, 2, 1.5, 1, 0.5, 0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 3.5, 3, 2.5],
+                borderColor: '#ec4899',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 4,
+                    ticks: {
+                        stepSize: 1,
+                        callback: function(value) {
+                            const labels = ['', 'Low', 'Medium', 'High', 'Peak'];
+                            return labels[value] || '';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

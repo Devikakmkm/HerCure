@@ -1,0 +1,23 @@
+{# Macros for date and time formatting and calculations #}
+
+{% macro format_date(date_obj, format='%Y-%m-%d') %}
+    {# Format a date object with the specified format string #}
+    {% if date_obj %}
+        {{ date_obj.strftime(format) }}
+    {% else %}
+        --
+    {% endif %}
+{% endmacro %}
+
+{% macro days_until(date_obj, datetime) %}
+    {# Calculate days until a future date #}
+    {% if date_obj and datetime %}
+        {% set today = datetime.datetime.utcnow().date() %}
+        {% set target_date = date_obj.date() %}
+        {{ (target_date - today).days }}
+    {% else %}
+        --
+    {% endif %}
+{% endmacro %}
+
+

@@ -1,0 +1,414 @@
+{% extends "base.html" %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .cart-sidebar {
+        transition: transform 0.3s ease-in-out;
+    }
+    .cart-sidebar.hidden {
+        transform: translateX(100%);
+    }
+    .cart-item-quantity {
+        width: 60px;
+        text-align: center;
+    }
+    .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+    }
+    .toast.show {
+        opacity: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen" id="app">
+    <!-- Toast Notifications -->
+    <div id="toast" class="toast bg-white rounded-lg shadow-lg p-4 max-w-sm">
+        <div class="flex items-center">
+            <div id="toast-icon" class="mr-3"></div>
+            <div>
+                <h4 id="toast-title" class="font-semibold"></h4>
+                <p id="toast-message" class="text-sm text-gray-600"></p>
+            </div>
+            <button onclick="hideToast()" class="ml-auto text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                    Women's Essentials Store
+                </h1>
+                <p class="mt-2 text-lg text-brand-gray">
+                    A curated selection of products to support your wellness journey.
+                </p>
+            </div>
+            <button id="cart-button" class="relative p-2 text-gray-700 hover:text-brand-pink transition-colors">
+                <i class="fas fa-shopping-cart text-2xl"></i>
+                <span id="cart-count" class="absolute -top-1 -right-1 bg-brand-pink text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">0</span>
+            </button>
+        </div>
+
+        <!-- Product Grid -->
+        <div id="products-grid" class="grid grid-cols-1 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
+            <!-- Products will be loaded here via JavaScript -->
+            <div class="text-center py-8">
+                <div class="animate-pulse">
+                    <div class="h-4 bg-gray-200 rounded w-3/4 mx-auto mb-4"></div>
+                    <div class="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Sidebar -->
+    <div id="cart-sidebar" class="fixed inset-y-0 right-0 w-full sm:w-96 bg-white shadow-xl z-50 overflow-y-auto cart-sidebar hidden">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Your Cart</h2>
+                <button id="close-cart" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <div id="cart-items" class="space-y-4 mb-6">
+                <!-- Cart items will be loaded here -->
+                <div class="text-center py-8">
+                    <p class="text-gray-500">Your cart is empty</p>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-200 pt-4">
+                <div class="flex justify-between text-lg font-medium text-gray-900 mb-6">
+                    <span>Total</span>
+                    <span id="cart-total">$0.00</span>
+                </div>
+                
+                <button id="checkout-button" class="w-full bg-brand-pink text-white py-3 px-4 rounded-lg font-semibold hover:bg-brand-teal transition-colors flex items-center justify-center disabled:opacity-50" disabled>
+                    <i class="fas fa-lock mr-2"></i> Proceed to Checkout
+                </button>
+                
+                <p class="mt-4 text-center text-sm text-gray-500">
+                    <i class="fas fa-lock mr-1"></i> Secure checkout powered by Stripe
+                </p>
+            </div>
+        </div>
+    </div>
+    <div id="cart-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<!-- Stripe.js -->
+<script src="https://js.stripe.com/v3/"></script>
+
+<script type="module">
+// Initialize Stripe with your publishable key
+const stripe = Stripe('{{ stripe_public_key }}');
+let cart = [];
+
+// DOM Elements
+const productsGrid = document.getElementById('products-grid');
+
+// Check if products grid exists
+if (!productsGrid) {
+    console.error('Products grid element not found');
+}
+
+// Products data passed from the server
+const serverProducts = JSON.parse('{{ products | tojson | safe }}');
+const cartButton = document.getElementById('cart-button');
+const cartSidebar = document.getElementById('cart-sidebar');
+const cartOverlay = document.getElementById('cart-overlay');
+const closeCartButton = document.getElementById('close-cart');
+const cartItemsContainer = document.getElementById('cart-items');
+const cartTotal = document.getElementById('cart-total');
+const cartCount = document.getElementById('cart-count');
+const checkoutButton = document.getElementById('checkout-button');
+const toast = document.getElementById('toast');
+
+// Show toast notification
+function showToast(title, message, type = 'success') {
+    const toastIcon = document.getElementById('toast-icon');
+    const toastTitle = document.getElementById('toast-title');
+    const toastMessage = document.getElementById('toast-message');
+    
+    // Set icon based on type
+    if (type === 'success') {
+        toastIcon.innerHTML = '<i class="fas fa-check-circle text-green-500 text-xl"></i>';
+    } else if (type === 'error') {
+        toastIcon.innerHTML = '<i class="fas fa-exclamation-circle text-red-500 text-xl"></i>';
+    } else {
+        toastIcon.innerHTML = '<i class="fas fa-info-circle text-blue-500 text-xl"></i>';
+    }
+    
+    toastTitle.textContent = title;
+    toastMessage.textContent = message;
+    toast.classList.add('show');
+    
+    // Hide after 3 seconds
+    setTimeout(hideToast, 3000);
+}
+
+function hideToast() {
+    toast.classList.remove('show');
+}
+
+// Toggle cart sidebar
+function toggleCart() {
+    cartSidebar.classList.toggle('hidden');
+    cartOverlay.classList.toggle('hidden');
+    document.body.style.overflow = cartOverlay.classList.contains('hidden') ? 'auto' : 'hidden';
+}
+
+// Close cart when clicking outside
+cartOverlay.addEventListener('click', toggleCart);
+closeCartButton.addEventListener('click', toggleCart);
+cartButton.addEventListener('click', toggleCart);
+
+// Load products from server-side data
+function loadProducts() {
+    try {
+        const products = serverProducts;
+        
+        if (!products || products.length === 0) {
+            productsGrid.innerHTML = '<p class="col-span-3 text-center py-8 text-gray-500">No products available at the moment.</p>';
+            return;
+        }
+        
+        productsGrid.innerHTML = products.map(product => `
+            <div class="group relative bg-white border border-gray-200 rounded-lg flex flex-col overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300">
+                <div class="aspect-w-3 aspect-h-2 bg-gray-200 sm:aspect-none sm:h-60">
+                    <img src="${product.image_url}"
+                         alt="${product.name}"
+                         class="w-full h-full object-cover object-center">
+                </div>
+                <div class="flex-1 p-4 space-y-2 flex flex-col">
+                    <h3 class="text-lg font-bold text-gray-900">
+                        ${product.name}
+                    </h3>
+                    <p class="text-sm text-brand-gray">${product.description}</p>
+                    <div class="flex-1 flex items-end">
+                        <p class="text-base font-medium text-gray-900">$${product.price.toFixed(2)}</p>
+                    </div>
+                </div>
+                <div class="p-4 pt-0">
+                    <button onclick="addToCart('${product.id}', '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${product.image_url}')" 
+                            class="w-full bg-brand-teal text-white font-semibold py-2 px-4 rounded-lg hover:bg-brand-pink transition-colors duration-300 flex items-center justify-center">
+                        <i class="fas fa-shopping-cart mr-2"></i> Add to Cart
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading products:', error);
+        showToast('Error', 'Failed to load products', 'error');
+    }
+}
+
+// Add to cart function
+async function addToCart(productId, productName, price, imageUrl) {
+    try {
+        const response = await fetch('/api/cart', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                product_id: productId,
+                quantity: 1
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to add to cart');
+        }
+        
+        // Update cart count
+        updateCartCount(1);
+        
+        // Show success message
+        showToast('Added to Cart', `${productName} has been added to your cart`);
+        
+        // Refresh cart
+        loadCart();
+    } catch (error) {
+        console.error('Error adding to cart:', error);
+        showToast('Error', 'Failed to add item to cart', 'error');
+    }
+}
+
+// Update cart count
+function updateCartCount(change = 0) {
+    const currentCount = parseInt(cartCount.textContent) || 0;
+    const newCount = Math.max(0, currentCount + change);
+    cartCount.textContent = newCount;
+    
+    // Show/hide cart count badge
+    cartCount.style.display = newCount > 0 ? 'flex' : 'none';
+    
+    // Enable/disable checkout button
+    checkoutButton.disabled = newCount === 0;
+}
+
+// Load cart
+async function loadCart() {
+    try {
+        const response = await fetch('/api/cart');
+        const data = await response.json();
+        
+        if (data.items.length === 0) {
+            cartItemsContainer.innerHTML = '<div class="text-center py-8"><p class="text-gray-500">Your cart is empty</p></div>';
+            cartTotal.textContent = '$0.00';
+            updateCartCount(-parseInt(cartCount.textContent) || 0);
+            return;
+        }
+        
+        // Update cart items
+        cartItemsContainer.innerHTML = data.items.map(item => `
+            <div class="flex items-center py-3 border-b border-gray-100">
+                <div class="flex-shrink-0 h-16 w-16 rounded-md overflow-hidden">
+                    <img src="${item.image_url}" alt="${item.name}" class="h-full w-full object-cover">
+                </div>
+                <div class="ml-4 flex-1">
+                    <div class="flex justify-between text-base font-medium text-gray-900">
+                        <h3>${item.name}</h3>
+                        <p class="ml-4">$${(item.price * item.quantity).toFixed(2)}</p>
+                    </div>
+                    <div class="flex items-center mt-1">
+                        <button onclick="updateCartItem('${item.product_id}', ${item.quantity - 1})" class="text-gray-500 hover:text-brand-pink">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <input type="number" min="1" value="${item.quantity}" 
+                               onchange="updateCartItem('${item.product_id}', this.value)" 
+                               class="mx-2 border border-gray-300 rounded text-center w-12">
+                        <button onclick="updateCartItem('${item.product_id}', ${item.quantity + 1})" class="text-gray-500 hover:text-brand-pink">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <button onclick="removeFromCart('${item.product_id}')" class="ml-4 text-gray-400 hover:text-red-500">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `).join('');
+        
+        // Update total
+        cartTotal.textContent = `$${data.total.toFixed(2)}`;
+        
+        // Update cart count
+        const totalItems = data.items.reduce((total, item) => total + item.quantity, 0);
+        updateCartCount(totalItems - (parseInt(cartCount.textContent) || 0));
+    } catch (error) {
+        console.error('Error loading cart:', error);
+        showToast('Error', 'Failed to load cart', 'error');
+    }
+}
+
+// Update cart item quantity
+async function updateCartItem(productId, newQuantity) {
+    try {
+        const response = await fetch('/api/cart', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                product_id: productId,
+                quantity: parseInt(newQuantity)
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to update cart');
+        }
+        
+        // Refresh cart
+        loadCart();
+    } catch (error) {
+        console.error('Error updating cart:', error);
+        showToast('Error', 'Failed to update cart', 'error');
+    }
+}
+
+// Remove item from cart
+async function removeFromCart(productId) {
+    try {
+        const response = await fetch(`/api/cart?product_id=${productId}`, {
+            method: 'DELETE'
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to remove item');
+        }
+        
+        // Show success message
+        showToast('Removed', 'Item removed from cart');
+        
+        // Refresh cart
+        loadCart();
+    } catch (error) {
+        console.error('Error removing item:', error);
+        showToast('Error', 'Failed to remove item from cart', 'error');
+    }
+}
+
+// Handle checkout
+checkoutButton.addEventListener('click', async () => {
+    try {
+        // Disable button to prevent multiple clicks
+        checkoutButton.disabled = true;
+        checkoutButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+        
+        // Create checkout session
+        const response = await fetch('/api/checkout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to create checkout session');
+        }
+        
+        const { sessionId } = await response.json();
+        
+        // Redirect to Stripe Checkout
+        const result = await stripe.redirectToCheckout({
+            sessionId: sessionId
+        });
+        
+        if (result.error) {
+            throw result.error;
+        }
+    } catch (error) {
+        console.error('Error during checkout:', error);
+        showToast('Checkout Error', error.message, 'error');
+        
+        // Re-enable button
+        checkoutButton.disabled = false;
+        checkoutButton.innerHTML = '<i class="fas fa-lock mr-2"></i> Proceed to Checkout';
+    }
+});
+
+// Initialize the page
+window.addEventListener('DOMContentLoaded', () => {
+    loadProducts();
+    loadCart();
+});
+</script>
+{% endblock %}

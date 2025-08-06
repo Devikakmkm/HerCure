@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen">
+    <div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Privacy & Data Management</h1>
+            <p class="mt-2 text-lg text-gray-600">Control your personal data and manage your privacy settings</p>
+        </div>
+
+        <!-- Data Management Section -->
+        <div class="bg-white rounded-lg shadow mb-8">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Data Export</h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-4">Export your complete health data, including cycle history, symptoms, and notes, in various formats.</p>
+                <div class="flex flex-wrap gap-4">
+                    <a href="{{ url_for('menstrual_enhanced.export_data', format='pdf') }}" class="bg-brand-pink-600 hover:bg-brand-pink-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-file-pdf mr-2"></i>Export as PDF
+                    </a>
+                    <a href="{{ url_for('menstrual_enhanced.export_data', format='csv') }}" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-file-csv mr-2"></i>Export as CSV
+                    </a>
+                    <a href="{{ url_for('menstrual_enhanced.export_data', format='json') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-file-code mr-2"></i>Export as JSON
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Privacy Settings Section -->
+        <div class="bg-white rounded-lg shadow mb-8">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Privacy Settings</h3>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h4 class="font-medium text-gray-800">Password Protection</h4>
+                        <p class="text-sm text-gray-600">Require a password or biometric authentication to open the app.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h4 class="font-medium text-gray-800">Share Anonymized Data</h4>
+                        <p class="text-sm text-gray-600">Contribute to medical research by sharing your anonymized data.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Account Section -->
+        <div class="bg-white rounded-lg shadow border-2 border-red-500">
+            <div class="p-6 border-b border-red-200">
+                <h3 class="text-lg font-medium text-red-800">Danger Zone</h3>
+            </div>
+            <div class="p-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h4 class="font-medium text-red-800">Delete Your Account</h4>
+                        <p class="text-sm text-red-600">This action is irreversible. All your data, including cycle history, profiles, and reports, will be permanently deleted.</p>
+                    </div>
+                    <button onclick="openDeleteModal()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                        Delete Account
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900">Are you sure?</h3>
+                <p class="mt-2 text-sm text-gray-500">This will permanently delete your account and all associated data. This action cannot be undone.</p>
+            </div>
+            <form action="{{ url_for('menstrual_enhanced.delete_account') }}" method="POST" class="p-6 bg-gray-50 rounded-b-lg">
+                <div class="mb-4">
+                    <label for="confirm_delete" class="block text-sm font-medium text-gray-700">To confirm, please type "DELETE" below:</label>
+                    <input type="text" id="confirm_delete" name="confirm_delete" required class="w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500" pattern="DELETE">
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                        I understand, delete my account
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Simple toggle switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+.switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+}
+input:checked + .slider {
+  background-color: #EC4899; /* brand-pink-500 */
+}
+input:focus + .slider {
+  box-shadow: 0 0 1px #EC4899;
+}
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+.slider.round {
+  border-radius: 34px;
+}
+.slider.round:before {
+  border-radius: 50%;
+}
+</style>
+
+<script>
+function openDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+}
+</script>
+{% endblock %}

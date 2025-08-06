@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Wellness Quiz - Hercure{% endblock %}
+
+{% block content %}
+<div class="container mx-auto mt-10 p-6 bg-white rounded-lg shadow-lg max-w-2xl">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Personalized Wellness Quiz</h1>
+    <p class="text-gray-600 mb-8 text-center">Answer a few simple questions to get a wellness plan tailored just for you.</p>
+
+        <form action="{{ url_for('menstrual.wellness_quiz') }}" method="POST" novalidate>
+        {{ form.hidden_tag() }}
+
+        <!-- Age -->
+        <div class="mb-6">
+            {{ form.age.label(class='block text-gray-700 font-semibold mb-2') }}
+            {{ form.age(class='w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400') }}
+            {% for error in form.age.errors %}
+                <span class="text-red-500 text-sm mt-1">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <!-- Cycle Length -->
+        <div class="mb-6">
+            {{ form.cycle_length.label(class='block text-gray-700 font-semibold mb-2') }}
+            {{ form.cycle_length(class='w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400') }}
+            {% for error in form.cycle_length.errors %}
+                <span class="text-red-500 text-sm mt-1">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <!-- Period Length -->
+        <div class="mb-6">
+            {{ form.period_length.label(class='block text-gray-700 font-semibold mb-2') }}
+            {{ form.period_length(class='w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400') }}
+            {% for error in form.period_length.errors %}
+                <span class="text-red-500 text-sm mt-1">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <!-- Symptoms -->
+        <div class="mb-8">
+            {{ form.symptoms.label(class='block text-gray-700 font-semibold mb-2') }}
+            <div class="grid grid-cols-2 gap-4 mt-2">
+                {% for subfield in form.symptoms %}
+                    <label class="flex items-center space-x-3">
+                        {{ subfield(class='h-5 w-5 text-pink-600 border-gray-300 rounded focus:ring-pink-500') }}
+                        <span class="text-gray-700">{{ subfield.label.text }}</span>
+                    </label>
+                {% endfor %}
+            </div>
+            {% for error in form.symptoms.errors %}
+                <span class="text-red-500 text-sm mt-1">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex justify-center space-x-4 mt-8">
+            <a href="/tracker" 
+               class="inline-block bg-gray-200 text-gray-700 font-bold py-3 px-8 rounded-full hover:bg-gray-300 transition duration-300 ease-in-out transform hover:scale-105">
+                ← Back to Menstrual Tracker
+            </a>
+            {{ form.submit(class='bg-pink-500 text-white font-bold py-3 px-8 rounded-full hover:bg-pink-600 transition duration-300 ease-in-out transform hover:scale-105') }}
+        </div>
+    </form>
+</div>
+{% endblock %}

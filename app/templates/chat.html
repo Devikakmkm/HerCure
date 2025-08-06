@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Health Assistant - HerCure{% endblock %}
+
+{% block content %}
+<div class="flex flex-col h-screen bg-gray-100">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+            <h1 class="text-2xl font-semibold text-gray-900">Health Assistant</h1>
+        </div>
+    </header>
+
+    <!-- Chat Container -->
+    <div class="flex-1 overflow-y-auto p-4">
+        <div class="max-w-3xl mx-auto space-y-4" id="chat-messages">
+            <!-- Messages will be inserted here by JavaScript -->
+            <div class="text-center text-gray-500 py-8" id="empty-state">
+                <p>Start a conversation with your health assistant</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Input -->
+    <div class="bg-white border-t border-gray-200 p-4">
+        <div class="max-w-3xl mx-auto">
+            <form id="chat-form" class="flex space-x-2">
+                <input 
+                    type="text" 
+                    id="message-input"
+                    class="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand-teal focus:border-transparent"
+                    placeholder="Type your message..."
+                    autocomplete="off"
+                    required
+                >
+                <button 
+                    type="submit"
+                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-brand-teal hover:bg-brand-pink focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-teal"
+                >
+                    Send
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for chat functionality -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatForm = document.getElementById('chat-form');
+    const messageInput = document.getElementById('message-input');
+    const chatMessages = document.getElementById('chat-messages');
+    const emptyState = document.getElementById('empty-state');
+    const accessToken = localStorage.getItem('access_token');
+
+    if (!accessToken) {
+        window.location.href = '/login';
+        return;
+    }
+
+    // Load message history
+    async function loadMessages() {
+        try {
+            const response = await fetch('/chat/api/messages', {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+            
+            if (response.ok) {
+                const messages = await response.json();
+                if (messages.length > 0) {
+                    emptyState.style.display = 'none';
+                    messages.forEach(addMessageToChat);
+                }
+            }
+        } catch (error) {
+            console.error('Error loading messages:', error);
+        }
+    }
+
+    // Add a message to the chat UI
+    function addMessageToChat(message) {
+        emptyState.style.display = 'none';
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `flex ${message.is_user ? 'justify-end' : 'justify-start'}`;
+        
+        messageDiv.innerHTML = `
+            <div class="max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-lg ${message.is_user ? 'bg-brand-teal text-white' : 'bg-white border border-gray-200'}">
+                <p class="text-sm">${message.message}</p>
+                <p class="text-xs mt-1 ${message.is_user ? 'text-blue-100' : 'text-gray-500'}">
+                    ${new Date(message.timestamp).toLocaleTimeString()}
+                </p>
+            </div>
+        `;
+        
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Handle form submission
+    chatForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const message = messageInput.value.trim();
+        if (!message) return;
+        
+        // Add user message to chat immediately
+        const userMessage = {
+            message: message,
+            is_user: true,
+            timestamp: new Date().toISOString()
+        };
+        addMessageToChat(userMessage);
+        
+        // Clear input
+        messageInput.value = '';
+        
+        try {
+            // Send message to server
+            const response = await fetch('/chat/api/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                body: JSON.stringify({ message })
+            });
+            
+            if (response.ok) {
+                const botMessage = await response.json();
+                botMessage.is_user = false;
+                botMessage.timestamp = new Date().toISOString();
+                addMessageToChat(botMessage);
+            } else {
+                throw new Error('Failed to send message');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            const errorMessage = {
+                message: 'Sorry, something went wrong. Please try again.',
+                is_user: false,
+                timestamp: new Date().toISOString()
+            };
+            addMessageToChat(errorMessage);
+        }
+    });
+    
+    // Load initial messages
+    loadMessages();
+});
+</script>
+{% endblock %}

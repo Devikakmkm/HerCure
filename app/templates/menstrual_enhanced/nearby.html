@@ -1,0 +1,609 @@
+{% extends "base.html" %}
+
+{% block title %}Nearby Medical Facilities{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="flex flex-col md:flex-row gap-6">
+        <!-- Left Column - Map and Search -->
+        <div class="w-full md:w-2/5">
+            <div class="bg-white rounded-lg shadow-md p-4 sticky top-4">
+                <h1 class="text-2xl font-bold text-gray-800 mb-4">Find Medical Facilities</h1>
+                
+                <!-- Search Box -->
+                <div class="mb-4">
+                    <label for="location-search" class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                    <div class="relative">
+                        <input type="text" id="location-search" 
+                               class="w-full p-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Enter a location">
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                </div>
+                
+                <!-- Filter Options -->
+                <div class="space-y-4 mb-4">
+                    <div>
+                        <label for="facility-type" class="block text-sm font-medium text-gray-700 mb-1">Facility Type</label>
+                        <select id="facility-type" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="hospital">🏥 Hospitals</option>
+                            <option value="clinic">🏥 Clinics</option>
+                            <option value="pharmacy">💊 Pharmacies</option>
+                            <option value="dentist">🦷 Dentists</option>
+                            <option value="optometrist">👁️ Eye Care</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="radius" class="block text-sm font-medium text-gray-700 mb-1">
+                            Search Radius: <span id="radius-value">5</span> km
+                        </label>
+                        <input type="range" id="radius" min="1" max="20" value="5" class="w-full">
+                        <div class="flex justify-between text-xs text-gray-500 px-1">
+                            <span>1km</span>
+                            <span>20km</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <button id="use-location" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center justify-center">
+                        <i class="fas fa-location-arrow mr-2"></i>
+                        Use My Location
+                    </button>
+                    <button id="search-button" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center justify-center">
+                        <i class="fas fa-search mr-2"></i>
+                        Search
+                    </button>
+                </div>
+                
+                <!-- Map Container -->
+                <div id="map" class="w-full h-64 mt-4 rounded-lg overflow-hidden border border-gray-200" style="min-height: 256px;"></div>
+                
+                <!-- Current Location Info -->
+                <div id="location-info" class="mt-3 text-xs text-gray-500">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    <span>Searching for your location...</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column - Results -->
+        <div class="w-full md:w-3/5">
+            <div class="bg-white rounded-lg shadow-md p-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-gray-800">Nearby Results</h2>
+                    <div class="text-sm text-gray-500">
+                        <span id="results-count">0</span> places found
+                    </div>
+                </div>
+                
+                <div id="places-list" class="space-y-3">
+                    <!-- Places will be loaded here -->
+                    <div class="text-center py-12 text-gray-400">
+                        <i class="fas fa-map-marker-alt text-4xl mb-3"></i>
+                        <p class="text-gray-500">Search for nearby medical facilities to see results</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+<!-- Place Details Modal -->
+<div id="place-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modal-title" class="text-2xl font-bold text-gray-800"></h3>
+                <button id="close-modal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <h4 class="font-semibold text-gray-700">Address</h4>
+                    <p id="modal-address" class="text-gray-600"></p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-700">Phone</h4>
+                    <p id="modal-phone" class="text-gray-600"></p>
+                </div>
+                <div id="modal-hours-container" class="hidden">
+                    <h4 class="font-semibold text-gray-700">Opening Hours</h4>
+                    <ul id="modal-hours" class="list-disc list-inside text-gray-600">
+                        <!-- Hours will be populated here -->
+                    </ul>
+                </div>
+                <div id="modal-website-container" class="hidden">
+                    <h4 class="font-semibold text-gray-700">Website</h4>
+                    <a id="modal-website" href="#" target="_blank" class="text-blue-600 hover:underline"></a>
+                </div>
+                <div class="pt-4">
+                    <a id="modal-directions" href="#" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800">
+                        <i class="fas fa-directions mr-2"></i>
+                        Get Directions
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    #map {
+        width: 100%;
+        height: 256px;
+        min-height: 256px;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+    }
+    .gm-style iframe + div {
+        border: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<!-- Google Maps API with callback -->
+<script src="https://maps.googleapis.com/maps/api/js?key={{GOOGLE_MAPS_API_KEYS}}&libraries=places&callback=initMap" async defer></script>
+<script>
+// Global variables
+let map;
+let markers = [];
+let infoWindow;
+let userLocation = null;
+let geocoder;
+let autocomplete;
+let lastSearch = 0;
+const SEARCH_DEBOUNCE = 1000; // 1 second debounce
+
+// Initialize the map when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initMap();
+    setupEventListeners();
+});
+
+// Initialize the Google Map and related services
+function initMap() {
+    // Default to a central location (can be set to user's location later)
+    const defaultLocation = { lat: 20.5937, lng: 78.9629 }; // Center of India
+    
+    // Ensure the map container has proper dimensions
+    const mapElement = document.getElementById('map');
+    mapElement.style.height = '256px';
+    
+    // Initialize the map with minimal UI
+    map = new google.maps.Map(mapElement, {
+        center: defaultLocation,
+        zoom: 13,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+        zoomControl: true,
+        zoomControlOptions: {
+            position: google.maps.ControlPosition.RIGHT_BOTTOM
+        },
+        styles: [
+            {
+                featureType: 'poi.medical',
+                elementType: 'labels.icon',
+                stylers: [{ visibility: 'on' }]
+            },
+            {
+                featureType: 'poi',
+                elementType: 'labels',
+                stylers: [{ visibility: 'off' }]
+            }
+        ]
+    });
+    
+    // Trigger a resize event to ensure the map renders correctly
+    setTimeout(() => {
+        google.maps.event.trigger(map, 'resize');
+        map.setCenter(defaultLocation);
+    }, 100);
+    
+    // Initialize services
+    infoWindow = new google.maps.InfoWindow();
+    geocoder = new google.maps.Geocoder();
+    
+    // Initialize autocomplete for location search
+    initAutocomplete();
+    
+    // Try to get user's current location
+    getUserLocation();
+}
+
+// Initialize location autocomplete
+function initAutocomplete() {
+    const input = document.getElementById('location-search');
+    autocomplete = new google.maps.places.Autocomplete(input, {
+        types: ['geocode', 'establishment'],
+        componentRestrictions: { country: 'in' } // Restrict to India
+    });
+    
+    // When a place is selected from the dropdown
+    autocomplete.addListener('place_changed', () => {
+        const place = autocomplete.getPlace();
+        if (!place.geometry) return;
+        
+        userLocation = {
+            lat: place.geometry.location.lat(),
+            lng: place.geometry.location.lng()
+        };
+        
+        map.setCenter(userLocation);
+        map.setZoom(14);
+        updateLocationInfo(`Searching near: ${place.name || 'Selected location'}`);
+        searchNearbyPlaces();
+    });
+}
+
+// Get user's current location
+function getUserLocation() {
+    updateLocationInfo('Getting your location...');
+    
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                
+                // Update map center
+                map.setCenter(userLocation);
+                map.setZoom(14);
+                
+                // Add a marker for user's location
+                new google.maps.Marker({
+                    position: userLocation,
+                    map: map,
+                    title: 'Your Location',
+                    icon: {
+                        url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+                        scaledSize: new google.maps.Size(32, 32)
+                    }
+                });
+                
+                // Get the address for display
+                geocoder.geocode({ location: userLocation }, (results, status) => {
+                    if (status === 'OK' && results[0]) {
+                        updateLocationInfo(`Your location: ${results[0].formatted_address}`);
+                    } else {
+                        updateLocationInfo('Using your current location');
+                    }
+                });
+                
+                // Auto-search with user's location
+                searchNearbyPlaces();
+            },
+            (error) => {
+                console.error('Error getting location:', error);
+                updateLocationInfo('Could not get your location. Using default location.');
+                userLocation = defaultLocation;
+                searchNearbyPlaces();
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    } else {
+        updateLocationInfo('Geolocation not supported. Using default location.');
+        userLocation = defaultLocation;
+        searchNearbyPlaces();
+    }
+}
+
+// Set up event listeners
+function setupEventListeners() {
+    // Use My Location button
+    const useLocationBtn = document.getElementById('use-location');
+    const searchButton = document.getElementById('search-button');
+    const facilityType = document.getElementById('facility-type');
+    const radiusInput = document.getElementById('radius');
+    const locationSearch = document.getElementById('location-search');
+    const closeModalBtn = document.getElementById('close-modal');
+    const placeModal = document.getElementById('place-modal');
+    
+    if (useLocationBtn) {
+        useLocationBtn.addEventListener('click', function() {
+            getUserLocation();
+        });
+    }
+    
+    if (searchButton) {
+        searchButton.addEventListener('click', function() {
+            const locationInput = locationSearch ? locationSearch.value.trim() : '';
+            if (locationInput) {
+                searchByAddress(locationInput);
+            } else {
+                getUserLocation();
+            }
+        });
+    }
+    
+    if (facilityType) {
+        facilityType.addEventListener('change', function() {
+            if (userLocation) searchNearbyPlaces();
+        });
+    }
+    
+    if (radiusInput) {
+        let radiusTimeout;
+        radiusInput.addEventListener('input', function() {
+            const km = this.value;
+            const radiusValue = document.getElementById('radius-value');
+            if (radiusValue) radiusValue.textContent = km;
+            
+            clearTimeout(radiusTimeout);
+            radiusTimeout = setTimeout(() => {
+                if (userLocation) searchNearbyPlaces();
+            }, 500);
+        });
+    }
+    
+    if (locationSearch) {
+        locationSearch.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const locationInput = this.value.trim();
+                if (locationInput) {
+                    searchByAddress(locationInput);
+                }
+            }
+        });
+    }
+    
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', function() {
+            if (placeModal) placeModal.classList.add('hidden');
+        });
+    }
+    
+    if (placeModal) {
+        placeModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+            }
+        });
+    }
+}
+
+// Search for a location by address
+function searchByAddress(address) {
+    if (!geocoder) {
+        console.error('Geocoder not initialized');
+        return;
+    }
+    
+    updateLocationInfo(`Searching for: ${address}`);
+    
+    geocoder.geocode({ address: address }, (results, status) => {
+        if (status === 'OK' && results[0]) {
+            userLocation = {
+                lat: results[0].geometry.location.lat(),
+                lng: results[0].geometry.location.lng()
+            };
+            
+            if (map) {
+                map.setCenter(userLocation);
+                map.setZoom(14);
+            }
+            
+            updateLocationInfo(`Searching near: ${results[0].formatted_address}`);
+            searchNearbyPlaces();
+        } else {
+            updateLocationInfo('Location not found. Please try another address.');
+            console.error('Geocode was not successful for the following reason:', status);
+        }
+    });
+}
+
+// Update location info text
+function updateLocationInfo(message) {
+    const locationInfo = document.getElementById('location-info');
+    if (locationInfo) {
+        locationInfo.innerHTML = `<i class="fas fa-info-circle mr-1"></i> ${message}`;
+    }
+}
+
+// Search for nearby places
+function searchNearbyPlaces() {
+    // Debounce to prevent too many API calls
+    const now = Date.now();
+    if (now - lastSearch < SEARCH_DEBOUNCE) return;
+    lastSearch = now;
+    
+    const facilityType = document.getElementById('facility-type').value;
+    const radius = document.getElementById('radius').value * 1000; // Convert km to meters
+    
+    // Show loading state
+    const placesList = document.getElementById('places-list');
+    placesList.innerHTML = `
+        <div class="col-span-full text-center py-12">
+            <i class="fas fa-spinner fa-spin text-4xl text-blue-500 mb-4"></i>
+            <p class="text-gray-600">Searching for nearby ${facilityType}...</p>
+        </div>
+    `;
+    
+    // Clear existing markers
+    clearMarkers();
+    
+    // Make API request to our backend
+    fetch(`/api/nearby?lat=${userLocation.lat}&lng=${userLocation.lng}&type=${facilityType}&radius=${radius}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            displayPlaces(data.places);
+            addMarkersToMap(data.places);
+        })
+        .catch(error => {
+            console.error('Error fetching nearby places:', error);
+            placesList.innerHTML = `
+                <div class="col-span-full text-center py-12 text-red-500">
+                    <i class="fas fa-exclamation-circle text-4xl mb-4"></i>
+                    <p>Error: ${error.message || 'Failed to load nearby places'}</p>
+                    <button onclick="searchNearbyPlaces()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        Try Again
+                    </button>
+                </div>
+            `;
+        });
+}
+
+// Display places in the list
+function displayPlaces(places) {
+    const placesList = document.getElementById('places-list');
+    
+    if (!places || places.length === 0) {
+        placesList.innerHTML = `
+            <div class="col-span-full text-center py-12 text-gray-500">
+                <i class="fas fa-search-location text-4xl mb-4"></i>
+                <p>No places found in this area. Try adjusting your search radius.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    placesList.innerHTML = places.map(place => `
+        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+            <div class="p-5">
+                <div class="flex justify-between items-start mb-3">
+                    <h3 class="text-lg font-semibold text-gray-800">${place.name}</h3>
+                    <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                        ${place.rating || 'N/A'} <i class="fas fa-star text-yellow-400"></i>
+                    </span>
+                </div>
+                <p class="text-gray-600 text-sm mb-3">
+                    <i class="fas fa-map-marker-alt text-red-500 mr-2"></i>
+                    ${place.address}
+                </p>
+                <div class="flex justify-between items-center mt-4">
+                    <button onclick="showPlaceDetails('${place.id}')" 
+                            class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                        <i class="fas fa-info-circle mr-1"></i> Details
+                    </button>
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=${place.location.lat},${place.location.lng}" 
+                       target="_blank" 
+                       class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                        <i class="fas fa-directions mr-1"></i> Directions
+                    </a>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Add markers to the map
+function addMarkersToMap(places) {
+    if (!places || !places.length) return;
+    
+    places.forEach(place => {
+        const marker = new google.maps.Marker({
+            position: place.location,
+            map: map,
+            title: place.name,
+            icon: {
+                url: getMarkerIcon(place.type),
+                scaledSize: new google.maps.Size(30, 30)
+            }
+        });
+        
+        // Add click event to show info window
+        marker.addListener('click', () => {
+            showPlaceDetails(place.id);
+        });
+        
+        markers.push(marker);
+    });
+    
+    // Fit map to show all markers
+    if (markers.length > 0) {
+        const bounds = new google.maps.LatLngBounds();
+        markers.forEach(marker => bounds.extend(marker.getPosition()));
+        map.fitBounds(bounds);
+    }
+}
+
+// Clear all markers from the map
+function clearMarkers() {
+    markers.forEach(marker => marker.setMap(null));
+    markers = [];
+}
+
+// Get appropriate marker icon based on place type
+function getMarkerIcon(type) {
+    const icons = {
+        'hospital': 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+        'clinic': 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+        'pharmacy': 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+        'medical_store': 'http://maps.google.com/mapfiles/ms/icons/purple-dot.png',
+        'default': 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+    };
+    
+    return icons[type] || icons['default'];
+}
+
+// Show place details in modal
+function showPlaceDetails(placeId) {
+    // Find the place in the current markers
+    const place = markers.find(marker => marker.title.includes(placeId))?.placeData;
+    if (!place) return;
+    
+    // Update modal content
+    document.getElementById('modal-title').textContent = place.name;
+    document.getElementById('modal-address').textContent = place.address;
+    document.getElementById('modal-phone').textContent = place.phone || 'Not available';
+    
+    // Update website if available
+    const websiteContainer = document.getElementById('modal-website-container');
+    const websiteLink = document.getElementById('modal-website');
+    if (place.website) {
+        websiteLink.href = place.website;
+        websiteLink.textContent = new URL(place.website).hostname;
+        websiteContainer.classList.remove('hidden');
+    } else {
+        websiteContainer.classList.add('hidden');
+    }
+    
+    // Update opening hours if available
+    const hoursContainer = document.getElementById('modal-hours-container');
+    const hoursList = document.getElementById('modal-hours');
+    if (place.opening_hours && place.opening_hours.length > 0) {
+        hoursList.innerHTML = place.opening_hours.map(time => 
+            `<li>${time}</li>`
+        ).join('');
+        hoursContainer.classList.remove('hidden');
+    } else {
+        hoursContainer.classList.add('hidden');
+    }
+    
+    // Update directions link
+    document.getElementById('modal-directions').href = 
+        `https://www.google.com/maps/dir/?api=1&destination=${place.location.lat},${place.location.lng}`;
+    
+    // Show the modal
+    document.getElementById('place-modal').classList.remove('hidden');
+    
+    // Pan to the selected marker
+    const marker = markers.find(m => m.title.includes(placeId));
+    if (marker) {
+        map.panTo(marker.getPosition());
+    }
+}
+
+// Make functions available globally
+window.searchNearbyPlaces = searchNearbyPlaces;
+window.showPlaceDetails = showPlaceDetails;
+</script>
+{% endblock %}
